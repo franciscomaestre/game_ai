@@ -28,7 +28,7 @@ class CustomReward(Wrapper):
         self.curr_x_pos = 0
         self.curr_y_pos = 0
         self.curr_score = 0
-        self.curr_life = 0
+        self.curr_life = 2
         self.curr_time = 400
         if monitor:
             self.monitor = monitor
@@ -94,8 +94,10 @@ class CustomReward(Wrapper):
 
     def reset(self):
         self.curr_x_pos = 0
-        self.curr_life = 0
+        self.curr_y_pos = 0
+        self.curr_life = 2
         self.curr_score = 0
+        self.curr_time = 400
         return self._process_observation(self.env.reset())
 
 
