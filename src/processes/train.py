@@ -12,15 +12,15 @@ from tensorboardX import SummaryWriter
 import timeit
 import math
 
-def _print_status(start_time):
+def _print_status(index, curr_episode, start_time):
     control_time = timeit.default_timer()
-    time_diff = control_time - start_time
+    time_diff = int(control_time - start_time)
     seconds = time_diff%60
     time_diff -= seconds
     minutes = math.floor((time_diff)/60.)
     hours = math.floor((minutes)/60.)
     minutes -= hours*60
-    print("Process {}. Episode {}. The code rums for {} h {} m {} s".format(index, curr_episode, hours, minutes, seconds))
+    print("Process {}. Episode {}. The code runs for {} h {} m {} s".format(index, curr_episode, hours, minutes, seconds))
 
 def local_train(index, opt, global_model, optimizer, save=False):
     #Usamos una semilla distinta en cada iteración para que no todos los caminos sean iguales
@@ -55,7 +55,7 @@ def local_train(index, opt, global_model, optimizer, save=False):
             if curr_episode % opt.save_interval == 0 and curr_episode > 0:
                 torch.save(global_model.state_dict(),
                            "{}/a3c_{}_{}_{}_{}".format(opt.saved_path, opt.game, opt.world, opt.stage, opt.action_type))
-            _print_status(start_time)
+            _print_status(index, curr_episode, start_time)
             
         curr_episode += 1
         local_model.load_state_dict(global_model.state_dict())
