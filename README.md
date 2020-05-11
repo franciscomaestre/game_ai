@@ -1,22 +1,7 @@
 
 ## A instalar
 
-atari-py==0.2.6
-cloudpickle==1.3.0
-future==0.18.2
-gym==0.17.1
-gym-super-mario-bros==7.3.0
-nes-py==8.1.1
-numpy==1.18.4
-opencv-python==4.2.0.34
-Pillow==7.1.2
-protobuf==3.11.3
-pyglet==1.5.0
-scipy==1.4.1
-six==1.14.0
-tensorboardX==2.0
-torch==1.5.0
-tqdm==4.46.0
+pip install -r requirements.txt
 
 brew install ffmpge
 

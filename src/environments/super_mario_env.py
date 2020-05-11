@@ -58,7 +58,7 @@ class CustomReward(Wrapper):
         #print(info)
 
         ## Penalizamos el que pase el tiempo en una posición sin moverse (se ha quedado bloqueado)
-        if info[""] < self.curr_time:
+        if info["time"] < self.curr_time:
             if info["x_pos"] == self.curr_x_pos and info["y_pos"] == self.curr_y_pos:
                 reward -= 1
         self.curr_curr_time = info["time"]

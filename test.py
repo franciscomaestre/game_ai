@@ -63,8 +63,8 @@ def run_trained_model(env, model):
         state, reward, done, info = env.step(action)
         state = torch.from_numpy(state)
         env.render()
-        if info["flag_get"]:
-            print("{} - World {} stage {} completed".format(opt.game, opt.world, opt.stage))
+        if done:
+            print("{} - completed".format(opt.game))
             break
 
 if __name__ == "__main__":
