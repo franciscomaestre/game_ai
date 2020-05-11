@@ -32,8 +32,8 @@ def get_args():
     parser.add_argument("--max_actions", type=int, default=250, help="Maximum repetition steps in test phase")
     parser.add_argument("--log_path", type=str, default="data/logs/a3c_log")
     parser.add_argument("--saved_path", type=str, default="data/models")
-    parser.add_argument("--load_from_previous_stage", type=bool, default=False,
-                        help="Load weight from previous trained stage")
+    parser.add_argument("--load_trained_model", type=bool, default=False, help="Load weight from previous trained stage")
+    parser.add_argument("--load_from_previous_stage", type=bool, default=False, help="Load weight from previous trained stage")
     parser.add_argument("--use_gpu", type=bool, default=False)
     args = parser.parse_args()
     return args
@@ -54,6 +54,15 @@ def get_global_model(opt):
     if opt.use_gpu:
         global_model.cuda()
     global_model.share_memory()
+
+    ## Con este bloque cogemos una red ya entrenada
+    if opt.load_trained_model:
+        print("Aquiiiii")
+        file_ = "{}/a3c_{}_{}_{}_{}".format(opt.saved_path, opt.game, opt.world, opt.stage, opt.action_type)
+        print(file_)
+        if os.path.isfile(file_):
+            print("acaaaa")
+            global_model.load_state_dict(torch.load(file_))
 
     ## Con este bloque cogemos una red ya entrenada y la usamos como base para un nuevo nivel
     if opt.load_from_previous_stage:
