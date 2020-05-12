@@ -57,11 +57,8 @@ def get_global_model(opt):
 
     ## Con este bloque cogemos una red ya entrenada
     if opt.load_trained_model:
-        print("Aquiiiii")
         file_ = "{}/a3c_{}_{}_{}_{}".format(opt.saved_path, opt.game, opt.world, opt.stage, opt.action_type)
-        print(file_)
         if os.path.isfile(file_):
-            print("acaaaa")
             global_model.load_state_dict(torch.load(file_))
 
     ## Con este bloque cogemos una red ya entrenada y la usamos como base para un nuevo nivel
