@@ -24,7 +24,6 @@ class CustomReward(Wrapper):
     def __init__(self, env=None, monitor=None):
         super(CustomReward, self).__init__(env)
         self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
-        self.curr_score = 0
         self.curr_lives = 3
         if monitor:
             self.monitor = monitor
@@ -49,20 +48,21 @@ class CustomReward(Wrapper):
 
         return frame_observation, self._reward(reward, done, info) , done, info
 
-    def _reward(self, reward, done, info):
-        ## Podemos usar info['ale.lives']
+    def _reward(self, reward, done, info):      
         if self.curr_lives > info['ale.lives']:
-            reward -=100
+            reward -= 5
         self.curr_lives = info['ale.lives']
         if done:
             if info['ale.lives'] > 0:
-                reward += 100
+                reward = info['ale.lives'] * 10
             else:
-                reward -= 100
+                reward -= 10
+        else:
+            ## Le premiamos por mantenerse con vida. Dado que no podemos ver el score, esta es la mejor opción
+            reward += 0.1
         return reward
 
     def reset(self):
-        self.curr_score = 0
         self.curr_lives = 3
         return self._preprocess_observation(self.env.reset())
 
