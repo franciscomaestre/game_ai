@@ -32,8 +32,10 @@ class CustomReward(Wrapper):
 
     def _preprocess_observation(self,frame):
         if frame is not None:
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-            frame = cv2.resize(frame, (84, 84))[None, :, :] / 255.
+            frame = cv2.cvtColor(cv2.resize(frame, (84, 110)), cv2.COLOR_BGR2GRAY)
+            frame = frame[26:110,:]
+            ret, frame = cv2.threshold(frame,1,255,cv2.THRESH_BINARY)
+            return np.reshape(frame,(1,84,84))
             return frame
         else:
             return np.zeros((1, 84, 84))
@@ -50,13 +52,13 @@ class CustomReward(Wrapper):
 
     def _reward(self, reward, done, info):      
         if self.curr_lives > info['ale.lives']:
-            reward -= 5
+            reward -= 30
         self.curr_lives = info['ale.lives']
         if done:
             if info['ale.lives'] > 0:
-                reward = info['ale.lives'] * 10
+                reward = info['ale.lives'] * 20
             else:
-                reward -= 10
+                reward -= 30
         else:
             ## Le premiamos por mantenerse con vida. Dado que no podemos ver el score, esta es la mejor opción
             reward += 0.1

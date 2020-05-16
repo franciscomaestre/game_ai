@@ -9,6 +9,7 @@ from nes_py.wrappers import JoypadSpace
 from gym_super_mario_bros.actions import SIMPLE_MOVEMENT, COMPLEX_MOVEMENT, RIGHT_ONLY
 import cv2
 import numpy as np
+import math
 import subprocess as sp
 from .common import Monitor
 
@@ -26,10 +27,8 @@ class CustomReward(Wrapper):
         super(CustomReward, self).__init__(env)
         self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
         self.curr_x_pos = 0
-        self.curr_y_pos = 0
         self.curr_score = 0
         self.curr_life = 2
-        self.curr_time = 400
         if monitor:
             self.monitor = monitor
         else:
@@ -55,28 +54,13 @@ class CustomReward(Wrapper):
 
     def _reward(self, reward, done, info):
 
-        #print(info)
-
-        ## Penalizamos el que pase el tiempo en una posición sin moverse (se ha quedado bloqueado)
-        if info["time"] < self.curr_time:
-            if info["x_pos"] == self.curr_x_pos and info["y_pos"] == self.curr_y_pos:
-                reward -= 1
-        self.curr_curr_time = info["time"]
-
         ## Si sube nuestro score damos un pequeño reward. Si ha sido gracias a coger la bandera, el reward es mayor
-        if info["score"] > self.curr_score:
-            if info["score"] > (self.curr_score+1000):
-                reward += 100
-            else:
-                reward += 5
+        reward += (info['score']-self.curr_score)/20.
         self.curr_score = info["score"]
 
-        ## Aprox. La x_pos llega a 4000. Aquí ponderamos para que la x_pos de hasta 200 puntos de reward
-        reward += (info["x_pos"] - self.curr_x_pos) / 20.
+        ## Hacemos que la X
+        reward += (info["x_pos"] - self.curr_x_pos)/40.
         self.curr_x_pos = info["x_pos"]
-
-        ## No vamos a modificar su comportamiento con la Y, pero si vamos a controlar su valor
-        self.curr_y_pos = info["y_pos"]
 
         ## Penalizamos fuertemente perder una vida
         if info["life"] < self.curr_life:
@@ -94,10 +78,8 @@ class CustomReward(Wrapper):
 
     def reset(self):
         self.curr_x_pos = 0
-        self.curr_y_pos = 0
         self.curr_life = 2
         self.curr_score = 0
-        self.curr_time = 400
         return self._process_observation(self.env.reset())
 
 
@@ -108,13 +90,11 @@ class CustomSkipFrame(Wrapper):
         self.skip = skip
 
     def step(self, action):
-        total_reward = 0
         observations_list = []
         observation, reward, done, info = self.env.step(action)
         for i in range(self.skip):
             if not done:
                 observation, reward, done, info = self.env.step(action)
-                total_reward += reward
                 observations_list.append(observation)
             else:
                 observations_list.append(observation)
