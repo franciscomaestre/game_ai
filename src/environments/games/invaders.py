@@ -51,16 +51,16 @@ class CustomReward(Wrapper):
 
     def _reward(self, reward, done, info):      
         if self.curr_lives > info['ale.lives']:
-            reward -= 30
+            reward -= 50
         self.curr_lives = info['ale.lives']
         if done:
             if info['ale.lives'] > 0:
                 reward = info['ale.lives'] * 20
             else:
-                reward -= 30
+                reward -= 50
         else:
             ## Le premiamos por mantenerse con vida. Dado que no podemos ver el score, esta es la mejor opción
-            reward += 0.1
+            reward += 0.01
         return reward
 
     def reset(self):
