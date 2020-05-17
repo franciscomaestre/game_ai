@@ -2,16 +2,14 @@
 @author: Francisco Maestre. Modified version of Viet Nguyen
 """
 
-import gym_super_mario_bros
+import gym
+from nes_py.wrappers import JoypadSpace
 from gym.spaces import Box
 from gym import Wrapper
-from nes_py.wrappers import JoypadSpace
-from gym_super_mario_bros.actions import SIMPLE_MOVEMENT, COMPLEX_MOVEMENT, RIGHT_ONLY
 import cv2
 import numpy as np
-import math
 import subprocess as sp
-from .common import Monitor
+from src.environments.common import Monitor
 
 '''
 La clase CustomReward es un Wrapper que sobreescribe ciertas funciones del Env, pero sigue siendo el mismo. Este Wrapper está pensado para Super Mario.
@@ -26,19 +24,18 @@ class CustomReward(Wrapper):
     def __init__(self, env=None, monitor=None):
         super(CustomReward, self).__init__(env)
         self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
-        self.curr_x_pos = 0
-        self.curr_score = 0
-        self.curr_life = 2
+        self.curr_lives = 3
         if monitor:
             self.monitor = monitor
         else:
             self.monitor = None
 
-    def _process_observation(self,frame):
+    def _preprocess_observation(self,frame):
         if frame is not None:
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-            frame = cv2.resize(frame, (84, 84))[None, :, :] / 255.
-            return frame
+            frame = cv2.cvtColor(cv2.resize(frame, (84, 110)), cv2.COLOR_BGR2GRAY)
+            frame = frame[26:110,:]
+            ret, frame = cv2.threshold(frame,1,255,cv2.THRESH_BINARY)
+            return np.reshape(frame,(1,84,84))
         else:
             return np.zeros((1, 84, 84))
     
@@ -48,39 +45,27 @@ class CustomReward(Wrapper):
         
         if self.monitor:
             self.monitor.record(observation)
-        frame_observation = self._process_observation(observation)
+        frame_observation = self._preprocess_observation(observation)
 
         return frame_observation, self._reward(reward, done, info) , done, info
 
-    def _reward(self, reward, done, info):
-
-        ## Si sube nuestro score damos un pequeño reward. Si ha sido gracias a coger la bandera, el reward es mayor
-        reward += (info['score']-self.curr_score)/20.
-        self.curr_score = info["score"]
-
-        ## Hacemos que la X
-        reward += (info["x_pos"] - self.curr_x_pos)/40.
-        self.curr_x_pos = info["x_pos"]
-
-        ## Penalizamos fuertemente perder una vida
-        if info["life"] < self.curr_life:
-            reward -= 100
-        self.curr_life = info["life"]
-
-        ## En caso de terminar la partida, si es porque hemos ganado, damos un premio, sino penalizamos
+    def _reward(self, reward, done, info):      
+        if self.curr_lives > info['ale.lives']:
+            reward -= 30
+        self.curr_lives = info['ale.lives']
         if done:
-            if info["flag_get"]:
-                reward += 100
+            if info['ale.lives'] > 0:
+                reward = info['ale.lives'] * 20
             else:
-                reward -= 100
-
-        return reward / 10.
+                reward -= 30
+        else:
+            ## Le premiamos por mantenerse con vida. Dado que no podemos ver el score, esta es la mejor opción
+            reward += 0.1
+        return reward
 
     def reset(self):
-        self.curr_x_pos = 0
-        self.curr_life = 2
-        self.curr_score = 0
-        return self._process_observation(self.env.reset())
+        self.curr_lives = 3
+        return self._preprocess_observation(self.env.reset())
 
 
 class CustomSkipFrame(Wrapper):
@@ -90,11 +75,13 @@ class CustomSkipFrame(Wrapper):
         self.skip = skip
 
     def step(self, action):
+        total_reward = 0
         observations_list = []
         observation, reward, done, info = self.env.step(action)
         for i in range(self.skip):
             if not done:
                 observation, reward, done, info = self.env.step(action)
+                total_reward += reward
                 observations_list.append(observation)
             else:
                 observations_list.append(observation)
@@ -111,20 +98,18 @@ Preparamos el enviroment haciendo uso de los wrapper preparados para el SuperMar
 """
 
 def create_train_env(world, stage, action_type, output_path=None):
-    env = gym_super_mario_bros.make("SuperMarioBros-{}-{}-v0".format(world, stage))
+    env = gym.make("SpaceInvaders-v0")
     if output_path:
         monitor = Monitor(256, 240, output_path)
     else:
         monitor = None
+
     if action_type == "right":
-        actions = RIGHT_ONLY
-    elif action_type == "simple":
-        actions = SIMPLE_MOVEMENT
-    elif action_type == "complex":
-        actions = COMPLEX_MOVEMENT
+        actions = env.env.get_action_meanings()
     else:
-        actions = RIGHT_ONLY
-    env = JoypadSpace(env, actions)
+        actions = env.env.get_action_meanings()
+    
+    #env = JoypadSpace(env, actions)
     env = CustomReward(env, monitor)
     env = CustomSkipFrame(env)
     return env, env.observation_space.shape[0], len(actions)

@@ -9,7 +9,7 @@ from gym import Wrapper
 import cv2
 import numpy as np
 import subprocess as sp
-from .common import Monitor
+from src.environments.common import Monitor
 
 '''
 La clase CustomReward es un Wrapper que sobreescribe ciertas funciones del Env, pero sigue siendo el mismo. Este Wrapper está pensado para Super Mario.
@@ -36,7 +36,6 @@ class CustomReward(Wrapper):
             frame = frame[26:110,:]
             ret, frame = cv2.threshold(frame,1,255,cv2.THRESH_BINARY)
             return np.reshape(frame,(1,84,84))
-            return frame
         else:
             return np.zeros((1, 84, 84))
     
@@ -50,7 +49,9 @@ class CustomReward(Wrapper):
 
         return frame_observation, self._reward(reward, done, info) , done, info
 
-    def _reward(self, reward, done, info):      
+    def _reward(self, reward, done, info):   
+        if(len(info) > 1):
+            print(info)   
         if self.curr_lives > info['ale.lives']:
             reward -= 30
         self.curr_lives = info['ale.lives']
@@ -99,18 +100,14 @@ Preparamos el enviroment haciendo uso de los wrapper preparados para el SuperMar
 """
 
 def create_train_env(world, stage, action_type, output_path=None):
-    env = gym.make("SpaceInvaders-v0")
+    env = gym.make("Pong-v0")
     if output_path:
         monitor = Monitor(256, 240, output_path)
     else:
         monitor = None
 
-    if action_type == "right":
-        actions = env.env.get_action_meanings()
-    else:
-        actions = env.env.get_action_meanings()
+    actions = ["NOOP", "UP", "DOWN"]
     
-    #env = JoypadSpace(env, actions)
     env = CustomReward(env, monitor)
     env = CustomSkipFrame(env)
     return env, env.observation_space.shape[0], len(actions)
