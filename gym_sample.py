@@ -4,7 +4,7 @@ import gym
 #env = gym.make("LunarLander-v2")
 #env = gym.make("Breakout-v0")
 #env = gym.make("SpaceInvaders-v0")
-#env = gym.make("Pong-v0")
+env = gym.make("Pong-v0")
 #env = gym.make("BipedalWalker-v3")
 env.reset()
 
@@ -19,5 +19,5 @@ def preprocess(observation):
 for _ in range(10):
     #env.render()
     next_obs, reward, done, info = env.step(env.action_space.sample())
-    print(env.action_space)
+    print(env.unwrapped._action_set)
     print(env.unwrapped.get_action_meanings())

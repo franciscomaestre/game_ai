@@ -24,7 +24,7 @@ class CustomReward(Wrapper):
     def __init__(self, env=None, monitor=None):
         super(CustomReward, self).__init__(env)
         self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
-        self.curr_lives = 3
+        self.curr_score = 0
         if monitor:
             self.monitor = monitor
         else:
@@ -50,23 +50,12 @@ class CustomReward(Wrapper):
         return frame_observation, self._reward(reward, done, info) , done, info
 
     def _reward(self, reward, done, info):   
-        if(len(info) > 1):
-            print(info)   
-        if self.curr_lives > info['ale.lives']:
-            reward -= 30
-        self.curr_lives = info['ale.lives']
-        if done:
-            if info['ale.lives'] > 0:
-                reward = info['ale.lives'] * 20
-            else:
-                reward -= 30
-        else:
-            ## Le premiamos por mantenerse con vida. Dado que no podemos ver el score, esta es la mejor opción
-            reward += 0.1
+        if len(info) > 2:
+            print(info)  
         return reward
 
     def reset(self):
-        self.curr_lives = 3
+        self.curr_score = 0
         return self._preprocess_observation(self.env.reset())
 
 
@@ -105,9 +94,7 @@ def create_train_env(world, stage, action_type, output_path=None):
         monitor = Monitor(256, 240, output_path)
     else:
         monitor = None
-
-    actions = ["NOOP", "UP", "DOWN"]
     
     env = CustomReward(env, monitor)
     env = CustomSkipFrame(env)
-    return env, env.observation_space.shape[0], len(actions)
+    return env, env.observation_space.shape[0], len(env.unwrapped._action_set)

@@ -104,10 +104,7 @@ def create_train_env(world, stage, action_type, output_path=None):
     else:
         monitor = None
 
-    if action_type == "right":
-        actions = env.env.get_action_meanings()
-    else:
-        actions = env.env.get_action_meanings()
+    actions = env.env.get_action_meanings()
     
     #env = JoypadSpace(env, actions)
     env = CustomReward(env, monitor)
