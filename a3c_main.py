@@ -1,6 +1,7 @@
 import sys
 import time
 import torch
+import timeit
 import warnings
 import numpy as np
 import torch.multiprocessing as mp
@@ -303,8 +304,8 @@ class DeepActorCriticAgent(mp.Process):
                 custom_region_available = True
                 break
         if custom_region_available is not True:
-            self.env_conf['useful_region'] = self.env_conf['useful_region']['Default']
-            
+            self.env_conf['useful_region'] = self.env_conf['useful_region']['Default']        
+
     def run(self):
         
         self._load_custom_region()
@@ -362,6 +363,8 @@ class DeepActorCriticAgent(mp.Process):
             self.shared_state["actor_state_dict"] = self.actor.cpu().state_dict()
             self.shared_state["critic_state_dict"] = self.critic.cpu().state_dict()
 
+        start_time = timeit.default_timer()
+
         for episode in range(self.params["max_num_episodes"]):
             obs = self.env.reset()
             done = False
@@ -369,7 +372,6 @@ class DeepActorCriticAgent(mp.Process):
             step_num = 0
             self.pull_params_from_global_agent()  # Synchronize local-agent specific parameters from the global
             while not done:
-                print("Ep: {} - Step: {} - Done: {}".format(episode, step_num, done))
                 action = self.get_action(obs)
                 next_obs, reward, done, _ = self.env.step(action)
                 self.rewards.append(reward)
@@ -407,8 +409,18 @@ class DeepActorCriticAgent(mp.Process):
 
             # Print stats at the end of episodes
             if self.actor_name == "global":
-                print("{}:Episode#:{} \t ep_reward:{} \t mean_ep_rew:{}\t best_ep_reward:{}".format(
-                            self.actor_name, episode, ep_reward, np.mean(episode_rewards), self.best_reward))
+
+                control_time = timeit.default_timer()
+                time_diff = int(control_time - start_time)
+                seconds = time_diff%60
+                time_diff -= seconds
+                minutes = math.floor((time_diff)/60.)
+                hours = math.floor((minutes)/60.)
+                minutes -= hours*60
+
+                print("{}:Episode#:{} \t ep_reward:{} \t mean_ep_rew:{}\t best_ep_reward:{} .The code runs for {} h {} m {} s".format(
+                            self.actor_name, episode, ep_reward, np.mean(episode_rewards), self.best_reward, hours, minutes, seconds))
+
                 writer.add_scalar(self.actor_name + "/ep_reward", ep_reward, self.global_step_num)
 
 if __name__ == "__main__":

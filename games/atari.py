@@ -27,7 +27,8 @@ def make_train_env(env_name, env_conf):
     if 'NoFrameskip' in env_name:
         assert 'NoFrameskip' in env.spec.id
         env = NoopResetEnv(env, noop_max=30)
-        env = MaxAndSkipEnv(env, skip=env_conf['skip_rate'])
+    
+    env = MaxAndSkipEnv(env, skip=env_conf['skip_rate'])
 
     if 'video' in env_conf.keys():
         video_path = "{}video_{}.mp4".format(env_conf['video_dir'], env_name)

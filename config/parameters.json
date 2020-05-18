@@ -21,7 +21,7 @@
       "atari": {
               "type": "atari",
               "episodic_life": true,
-              "skip_rate": 1,
+              "skip_rate": 4,
               "num_frames_to_stack": 4,
               "render": false,
               "normalize_observation": false,
@@ -67,7 +67,7 @@
       "super_mario": {
               "type": "super_mario",
               "episodic_life": true,
-              "skip_rate": 1,
+              "skip_rate": 8,
               "num_frames_to_stack": 4,
               "render": false,
               "normalize_observation": false,
