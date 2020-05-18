@@ -2,7 +2,7 @@
 import json
 
 class ParamsManager(object):
-    def __init__(self, params_file="parameters.json"):
+    def __init__(self, params_file="config/parameters.json"):
         """
         A class to manage the Parameters. Parameters include configuration parameters and Hyper-parameters
         :param params_file: Path to the parameters json file

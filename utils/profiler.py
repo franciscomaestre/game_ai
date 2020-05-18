@@ -1,4 +1,4 @@
-import cProfile, pstats, StringIO
+import cProfile, pstats, io
 
 
 class Profiler(object):
@@ -6,17 +6,21 @@ class Profiler(object):
     def __init__(self, text, sort='tottime'):
         self.text = text
         self.sortby = sort
-        print(u'--------- Enabling Profiler %s ---------------' % self.text)
         self.profiler = cProfile.Profile()
+
+    def enable(self):
         self.profiler.enable()
+        print(u'--------- Enabling Profiler %s ---------------' % self.text)
     
-    def disable(self, max_stats=10):
+    def disable(self):
         self.profiler.disable()
         print(u'--------- Disabling Profiler %s ---------------' % self.text)
-        s = StringIO.StringIO()
+
+    def print_stats(self, max_stats=10):     
+        s = io.StringIO()
         ps = pstats.Stats(self.profiler, stream=s).sort_stats(self.sortby)
         ps.print_stats(max_stats)
-        print s.getvalue()
+        print(s.getvalue())
         print(u'--------- Disabled Profiler %s ---------------' % self.text)
         
 

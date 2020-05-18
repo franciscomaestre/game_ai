@@ -1,6 +1,6 @@
 {
     "agent":{
-      "num_agents": 8,
+      "num_agents": 1,
       "seed": 155,
       "model_dir": "./data/models/",
       "summary_file_path_prefix": "./data/logs/AsyncA2C_",
@@ -8,10 +8,10 @@
       "learning_rate": 1e-4,
       "max_num_episodes": 50000,
       "gamma": 0.99,
-      "learning_step_thresh": 10,
+      "learning_step_thresh": 1000,
       "clip_rewards": true,
       "load_trained_model": true,
-      "save_freq_when_perf_improves": 10,
+      "save_freq_when_perf_improves": 5,
       "use_entropy_bonus": true,
       "test": false,
       "render": false

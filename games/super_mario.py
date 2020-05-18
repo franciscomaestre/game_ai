@@ -26,6 +26,8 @@ def make_train_env(env_name, env_conf):
         monitor = Monitor(256, 240, video_path)
     else:
         monitor = None
+    
+    env = MaxAndSkipEnv(env, skip=env_conf['skip_rate'])
 
     if env_conf['episodic_life']:
         env = EpisodicLifeEnv(env)
@@ -37,6 +39,8 @@ def make_train_env(env_name, env_conf):
     env = CustomReward(env, monitor)
 
     return env
+
+
 
 class EpisodicLifeEnv(gym.Wrapper):
     def __init__(self, env):

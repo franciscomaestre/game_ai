@@ -1,3 +1,4 @@
+import sys
 import time
 import torch
 import warnings
@@ -21,6 +22,7 @@ from models.deep import Critic as DeepCritic
 
 from games import make_train_env
 from utils.params_manager import ParamsManager
+from utils.profiler import Profiler
 
 def get_args():
     parser = ArgumentParser("Game AI v2")
@@ -248,6 +250,7 @@ class DeepActorCriticAgent(mp.Process):
         self.critic.to(device)
 
     def learn(self, n_th_observation, done):
+        
         if self.params["clip_rewards"]:
             self.rewards = np.sign(self.rewards).tolist()  # Clip rewards to -1 or 0 or +1
         td_targets = self.calculate_n_step_return(self.rewards, n_th_observation, done, self.gamma)
@@ -256,7 +259,7 @@ class DeepActorCriticAgent(mp.Process):
         self.actor_optimizer.zero_grad()
         actor_loss.backward(retain_graph=True)
         self.actor_optimizer.step()
-
+        
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
@@ -366,13 +369,25 @@ class DeepActorCriticAgent(mp.Process):
             step_num = 0
             self.pull_params_from_global_agent()  # Synchronize local-agent specific parameters from the global
             while not done:
+                print("Ep: {} - Step: {} - Done: {}".format(episode, step_num, done))
                 action = self.get_action(obs)
                 next_obs, reward, done, _ = self.env.step(action)
                 self.rewards.append(reward)
                 ep_reward += reward
                 step_num += 1
+
+                obs = next_obs
+                self.global_step_num += 1
+                if self.actor_name == "global":
+                    if self.params["render"]:
+                        self.env.render()
+                    #print(self.actor_name + ":Episode#:", episode, "step#:", step_num, "\t rew=", reward, end="\r")
+                    writer.add_scalar(self.actor_name + "/reward", reward, self.global_step_num)
+            
                 if not self.params["test"] and (step_num >= self.params["learning_step_thresh"] or done):
+
                     self.learn(next_obs, done)
+
                     step_num = 0
                     # Async send updates to the global shared parameters
                     self.push_params_to_global_agent()
@@ -384,19 +399,12 @@ class DeepActorCriticAgent(mp.Process):
                             self.best_reward = ep_reward
                         if np.mean(episode_rewards) > prev_checkpoint_mean_ep_rew:
                             num_improved_episodes_before_checkpoint += 1
-                        if num_improved_episodes_before_checkpoint >= self.params["save_freq_when_perf_improves"] or episode == 0:
+                        if num_improved_episodes_before_checkpoint >= self.params["save_freq_when_perf_improves"]:
                             prev_checkpoint_mean_ep_rew = np.mean(episode_rewards)
                             self.best_mean_reward = np.mean(episode_rewards)
                             self.save()
                             num_improved_episodes_before_checkpoint = 0
 
-                obs = next_obs
-                self.global_step_num += 1
-                if self.actor_name == "global":
-                    if self.params["render"]:
-                        self.env.render()
-                    #print(self.actor_name + ":Episode#:", episode, "step#:", step_num, "\t rew=", reward, end="\r")
-                    writer.add_scalar(self.actor_name + "/reward", reward, self.global_step_num)
             # Print stats at the end of episodes
             if self.actor_name == "global":
                 print("{}:Episode#:{} \t ep_reward:{} \t mean_ep_rew:{}\t best_ep_reward:{}".format(
