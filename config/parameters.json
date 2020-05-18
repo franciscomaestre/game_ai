@@ -1,0 +1,86 @@
+{
+    "agent":{
+      "num_agents": 8,
+      "seed": 155,
+      "model_dir": "./data/models/",
+      "summary_file_path_prefix": "./data/logs/AsyncA2C_",
+      "use_cuda": false,
+      "learning_rate": 1e-4,
+      "max_num_episodes": 50000,
+      "gamma": 0.99,
+      "learning_step_thresh": 10,
+      "clip_rewards": true,
+      "load_trained_model": true,
+      "save_freq_when_perf_improves": 10,
+      "use_entropy_bonus": true,
+      "test": false,
+      "render": false
+    },
+  
+    "env": {
+      "atari": {
+              "type": "atari",
+              "episodic_life": true,
+              "skip_rate": 1,
+              "num_frames_to_stack": 4,
+              "render": false,
+              "normalize_observation": false,
+              "video_dir": "./data/output/",
+              "useful_region": {
+                  "Default":{
+                          "crop1": 34,
+                          "crop2": 34,
+                          "dimension2": 80
+                          },
+                  "Asteroids": {
+                            "crop1": 16,
+                            "crop2": 34,
+                            "dimension2": 94
+                            },
+                  "BeamRider": {
+                            "crop1": 20,
+                            "crop2": 20,
+                            "dimension2": 80
+                            },
+                  "Breakout": {
+                            "crop1": 34,
+                            "crop2": 34,
+                            "dimension2": 80
+                            },
+                  "MsPacman": {
+                            "crop1": 2,
+                            "crop2": 10,
+                            "dimension2": 84
+                  },
+                  "Pong": {
+                            "crop1": 34,
+                            "crop2": 34,
+                            "dimension2": 80
+                  },
+                  "SpaceInvaders": {
+                            "crop1": 8,
+                            "crop2": 36,
+                            "dimension2": 94
+                  }
+                }
+      },
+      "super_mario": {
+              "type": "super_mario",
+              "episodic_life": true,
+              "skip_rate": 1,
+              "num_frames_to_stack": 4,
+              "render": false,
+              "normalize_observation": false,
+              "action_type": "rigth",
+              "video_dir": "./data/output/",
+              "useful_region": {
+                  "Default":{
+                          "crop1": 34,
+                          "crop2": 34,
+                          "dimension2": 80
+                          }
+                    }
+      }
+      
+  }
+}
