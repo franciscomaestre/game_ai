@@ -28,39 +28,46 @@
               "video_dir": "./data/output/",
               "useful_region": {
                   "Default":{
-                          "crop1": 34,
-                          "crop2": 34,
-                          "dimension2": 80
+                          "crop_x": 0,
+                          "crop_y": 14,
+                          "scale": 84,
+                          "binary": false
                           },
                   "Asteroids": {
-                            "crop1": 16,
-                            "crop2": 34,
-                            "dimension2": 94
+                            "crop_x": 0,
+                            "crop_y": 14,
+                            "scale": 84,
+                            "binary": false
                             },
                   "BeamRider": {
-                            "crop1": 20,
-                            "crop2": 20,
-                            "dimension2": 80
+                            "crop_x": 0,
+                            "crop_y": 14,
+                            "scale": 84,
+                            "binary": false
                             },
                   "Breakout": {
-                            "crop1": 34,
-                            "crop2": 34,
-                            "dimension2": 80
+                            "crop_x": 0,
+                            "crop_y": 14,
+                            "scale": 84,
+                            "binary": false
                             },
                   "MsPacman": {
-                            "crop1": 2,
-                            "crop2": 10,
-                            "dimension2": 84
+                            "crop_x": 0,
+                            "crop_y": 14,
+                            "scale": 84,
+                            "binary": false
                   },
                   "Pong": {
-                            "crop1": 34,
-                            "crop2": 34,
-                            "dimension2": 80
+                            "crop_x": 0,
+                            "crop_y": 14,
+                            "scale": 84,
+                            "binary": false
                   },
                   "SpaceInvaders": {
-                            "crop1": 8,
-                            "crop2": 36,
-                            "dimension2": 94
+                            "crop_x": 0,
+                            "crop_y": 14,
+                            "scale": 84,
+                            "binary": true
                   }
                 }
       },
@@ -75,9 +82,10 @@
               "video_dir": "./data/output/",
               "useful_region": {
                   "Default":{
-                          "crop1": 34,
-                          "crop2": 34,
-                          "dimension2": 80
+                          "crop_x": 34,
+                          "crop_y": 34,
+                          "scale": 84,
+                          "binary": false
                           }
                     }
       }

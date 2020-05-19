@@ -419,7 +419,7 @@ class DeepActorCriticAgent(mp.Process):
                 hours = math.floor((minutes)/60.)
                 minutes -= hours*60
 
-                print("{}:Episode#:{} \t ep_reward:{} \t mean_ep_rew:{}\t best_ep_reward:{} .The code runs for {} h {} m {} s".format(
+                print("{}:Episode#:{} \t ep_reward:{:.2f} \t mean_ep_rew:{:.2f}\t best_ep_reward:{:.2f} .The code runs for {} h {} m {} s".format(
                             self.actor_name, episode, ep_reward, np.mean(episode_rewards), self.best_reward, hours, minutes, seconds))
 
                 writer.add_scalar(self.actor_name + "/ep_reward", ep_reward, self.global_step_num)
