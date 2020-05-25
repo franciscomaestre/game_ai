@@ -68,7 +68,8 @@ class DiscreteActorCriticTestProcess(_mp.Process):
                 curr_step = 0
                 actions.clear()
                 state = env.reset()
-                print("Reward: {:.2f}\tBest Reward: {:.2f}\t".format(episode_reward, best_reward))
+                if self.index == 0:
+                    print("Reward: {:.2f}\tBest Reward: {:.2f}\t".format(episode_reward, best_reward))
             state = torch.from_numpy(state)
 
     
