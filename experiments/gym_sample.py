@@ -16,8 +16,8 @@ def preprocess(observation):
     ret, observation = cv2.threshold(observation,1,255,cv2.THRESH_BINARY)
     return np.reshape(observation,(84,84,1))
 
-for _ in range(10):
-    #env.render()
+for _ in range(1000):
+    env.render()
     next_obs, reward, done, info = env.step(env.action_space.sample())
     print(env.unwrapped._action_set)
     print(env.unwrapped.get_action_meanings())

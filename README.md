@@ -13,3 +13,6 @@ A futuro, se optimizará para ellos siguiendo el repo https://github.com/greydan
 
 Para construir este repo, me basé en el repo https://github.com/uvipen/Super-mario-bros-A3C-pytorch/blob/master/README.md. A partir de su trabajo generé esta versión optimizada y refactorizada
  
+## Errores conocidos
+
+Si estás en un Mac, debes incluir en tu bashsrc export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES

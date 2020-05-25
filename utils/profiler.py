@@ -12,9 +12,11 @@ class Profiler(object):
         self.profiler.enable()
         print(u'--------- Enabling Profiler %s ---------------' % self.text)
     
-    def disable(self):
+    def disable(self, print_stats = False):
         self.profiler.disable()
         print(u'--------- Disabling Profiler %s ---------------' % self.text)
+        if print_stats:
+            self.print_stats()
 
     def print_stats(self, max_stats=10):     
         s = io.StringIO()

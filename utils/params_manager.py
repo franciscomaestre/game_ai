@@ -1,7 +1,17 @@
 #!/usr/bin/env python
 import json
 
+
 class ParamsManager(object):
+
+    __instance = None
+
+    @staticmethod
+    def getInstance(params_file="config/parameters.json"):
+        if ParamsManager.__instance is None:
+            ParamsManager.__instance  = ParamsManager(params_file)
+        return ParamsManager.__instance
+
     def __init__(self, params_file="config/parameters.json"):
         """
         A class to manage the Parameters. Parameters include configuration parameters and Hyper-parameters
