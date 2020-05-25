@@ -43,7 +43,7 @@ class ObservationEnv(gym.ObservationWrapper):
 
     def observation(self, observation):
         if self.monitor:
-            self.monitor.record(observation)
+            self.monitor.record(observation[0][0])
         self.steps += 1
         return process_frame_84(observation, self.frame_conf)
 

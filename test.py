@@ -52,6 +52,7 @@ def get_params(args):
     agent_params = params_manager.get_agent_params()
     env_params = params_manager.get_env_params(args.env_params.lower())
     env_params['env_name'] = args.env_name
+    env_params['video'] = True
 
     custom_region_available = False
     for key, value in env_params['useful_region'].items():
