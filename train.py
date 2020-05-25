@@ -96,7 +96,7 @@ def get_global_model(agent_params, env_params):
 
 def launch_processes(global_model, optimizer, agent_params, env_params):
     ## Arrancamos el multiprocessing
-    mp = _mp.get_context("spawn")
+    _mp.set_start_method('spawn')
 
     processes = []
     for index in range(agent_params['num_agents']):

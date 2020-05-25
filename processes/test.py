@@ -31,7 +31,14 @@ class DiscreteActorCriticTestProcess(_mp.Process):
         done = True
         curr_step = 0
         actions = deque(maxlen=self.agent_params['max_actions'])
+
+        episode_reward = 0
+        best_reward = -999999
+
         while True:
+            
+            episode_reward = 0
+
             curr_step += 1
             if done:
                 local_model.load_state_dict(self.global_model.state_dict())
@@ -47,14 +54,21 @@ class DiscreteActorCriticTestProcess(_mp.Process):
             policy = F.softmax(logits, dim=1)
             action = torch.argmax(policy).item()
             state, reward, done, _ = env.step(action)
+            episode_reward += reward
             env.render()
             actions.append(action)
             if curr_step > self.agent_params['num_global_steps'] or actions.count(actions[0]) == actions.maxlen:
                 done = True
+            
             if done:
+
+                if episode_reward > best_reward:
+                    best_reward = episode_reward
+
                 curr_step = 0
                 actions.clear()
                 state = env.reset()
+                print("Reward: {:.2f}\tBest Reward: {:.2f}\t".format(episode_reward, best_reward))
             state = torch.from_numpy(state)
 
     

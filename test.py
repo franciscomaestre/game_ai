@@ -7,6 +7,7 @@ import torch
 import argparse
 import warnings
 import torch.nn.functional as F
+import torch.multiprocessing as _mp
 
 from environments import make_train_env
 from models.actor_critic import ActorCritic
@@ -18,6 +19,9 @@ os.environ['OMP_NUM_THREADS'] = '1'
 warnings.filterwarnings("ignore")
 
 def test():
+
+    _mp.set_start_method('spawn')
+
     ## Obtenemos los argumentos
     args = get_args()
 
@@ -76,34 +80,6 @@ def get_trained_model(agent_params, env_params):
         model.load_state_dict(torch.load("{}/a3c_{}".format(agent_params['model_path'], env_params['env_name']),
                                          map_location=lambda storage, loc: storage))
     return env, model
-
-def run_trained_model(env, model):
-    model.eval()
-    state = torch.from_numpy(env.reset())
-    done = True
-    while True:
-        if done:
-            h_0 = torch.zeros((1, 512), dtype=torch.float)
-            c_0 = torch.zeros((1, 512), dtype=torch.float)
-            env.reset()
-        else:
-            h_0 = h_0.detach()
-            c_0 = c_0.detach()
-        if torch.cuda.is_available():
-            h_0 = h_0.cuda()
-            c_0 = c_0.cuda()
-            state = state.cuda()
-
-        logits, value, h_0, c_0 = model(state, h_0, c_0)
-        policy = F.softmax(logits, dim=1)
-        action = torch.argmax(policy).item()
-        action = int(action)
-        state, reward, done, info = env.step(action)
-        state = torch.from_numpy(state)
-        env.render()
-        if done:
-            print("{} - completed".format(opt.game))
-            break
 
 if __name__ == "__main__":
     test()

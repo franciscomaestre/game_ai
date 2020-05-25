@@ -15,7 +15,7 @@ from torch.distributions import Categorical
 from environments import make_train_env
 from models.actor_critic import ActorCritic
 
-def _print_status(curr_episode, start_time):
+def _print_status(curr_episode, start_time, episode_reward, best_reward):
     control_time = timeit.default_timer()
     time_diff = int(control_time - start_time)
     seconds = time_diff%60
@@ -23,7 +23,7 @@ def _print_status(curr_episode, start_time):
     minutes = math.floor((time_diff)/60.)
     hours = math.floor((minutes)/60.)
     minutes -= hours*60
-    print("Global Process -- Episode {}. The code runs for {} h {} m {} s".format(curr_episode, hours, minutes, seconds))
+    print("Global Process -- Episode {}\tReward: {:.2f}\tBest Reward: {:.2f}\tThe code runs for {} h {} m {} s".format(curr_episode, episode_reward, best_reward, hours, minutes, seconds))
 
 class DiscreteActorCriticTrainProcess(_mp.Process):
     
@@ -61,13 +61,10 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
         curr_step = 0
         curr_episode = 0
 
+        episode_reward = 0
+        best_reward = -999999
+
         while True:
-            #Si hemos configurado que se guarde, cada X épocas se encargará de salvarlo. Esto actualizará el que vemos visualmente
-            if self.save:
-                if curr_episode % self.agent_params['save_internal'] == 0 and curr_episode > 0:
-                    torch.save(self.global_model.state_dict(),
-                            "{}/a3c_{}".format(self.agent_params['model_path'], self.env_params['env_name']))
-                _print_status(curr_episode, start_time)
                 
             curr_episode += 1
             local_model.load_state_dict(self.global_model.state_dict())
@@ -85,6 +82,8 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
             values = []
             rewards = []
             entropies = []
+
+            episode_reward = 0
 
             for _ in range(self.agent_params['num_local_steps']):
                 curr_step += 1
@@ -114,8 +113,13 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                 rewards.append(reward)
                 entropies.append(entropy)
 
+                episode_reward += reward
+
                 if done:
                     break
+            
+            if best_reward < episode_reward:
+                best_reward = episode_reward
 
             R = torch.zeros((1, 1), dtype=torch.float)
             if self.agent_params['use_gpu']:
@@ -151,6 +155,13 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                 global_param._grad = local_param.grad
 
             self.optimizer.step()
+
+            #Si hemos configurado que se guarde, cada X épocas se encargará de salvarlo. Esto actualizará el que vemos visualmente
+            if self.save:
+                if curr_episode % self.agent_params['save_internal'] == 0 and curr_episode > 0:
+                    torch.save(self.global_model.state_dict(),
+                            "{}/a3c_{}".format(self.agent_params['model_path'], self.env_params['env_name']))
+                _print_status(curr_episode, start_time, episode_reward, best_reward)
 
             if curr_episode == int(self.agent_params['num_global_steps'] / self.agent_params['num_local_steps']):
                 print("Training process {} terminated".format(self.index))
