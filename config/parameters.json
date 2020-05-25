@@ -85,8 +85,8 @@
             "video_dir": "./data/output/",
             "useful_region": {
                 "Default":{
-                        "crop_x": 34,
-                        "crop_y": 34,
+                        "crop_x": 0,
+                        "crop_y": 20,
                         "scale": 84,
                         "binary": false
                         }
