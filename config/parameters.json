@@ -1,0 +1,96 @@
+{
+  "agent":{
+    "num_agents": 14,
+    "seed": 123,
+    "model_path": "./data/models/",
+    "log_path": "./data/logs/",
+    "output_path": "./data/output/",
+    "use_cuda": false,
+    "learning_rate": 1e-4,
+    "gamma": 0.90,
+    "tau": 1.00,
+    "beta": 0.01,
+    "num_local_steps": 50,
+    "num_global_steps": 5e6,
+    "save_internal": 250,
+    "max_actions": 250,
+    "save_freq_when_perf_improves": 10,
+    "load_trained_model": false,
+    "use_gpu": false
+  },
+
+  "env": {
+    "atari": {
+            "type": "atari",
+            "episodic_life": true,
+            "skip_rate": 4,
+            "num_frames_to_stack": 4,
+            "render": false,
+            "normalize_observation": false,
+            "video_dir": "./data/output/",
+            "useful_region": {
+                "Default":{
+                        "crop_x": 0,
+                        "crop_y": 14,
+                        "scale": 84,
+                        "binary": false
+                        },
+                "Asteroids": {
+                          "crop_x": 0,
+                          "crop_y": 14,
+                          "scale": 84,
+                          "binary": false
+                          },
+                "BeamRider": {
+                          "crop_x": 0,
+                          "crop_y": 14,
+                          "scale": 84,
+                          "binary": false
+                          },
+                "Breakout": {
+                          "crop_x": 0,
+                          "crop_y": 14,
+                          "scale": 84,
+                          "binary": false
+                          },
+                "MsPacman": {
+                          "crop_x": 0,
+                          "crop_y": 14,
+                          "scale": 84,
+                          "binary": false
+                },
+                "Pong": {
+                          "crop_x": 0,
+                          "crop_y": 14,
+                          "scale": 84,
+                          "binary": false
+                },
+                "SpaceInvaders": {
+                          "crop_x": 0,
+                          "crop_y": 14,
+                          "scale": 84,
+                          "binary": true
+                }
+              }
+    },
+    "super_mario": {
+            "type": "super_mario",
+            "episodic_life": true,
+            "skip_rate": 8,
+            "num_frames_to_stack": 4,
+            "render": false,
+            "normalize_observation": false,
+            "action_type": "rigth",
+            "video_dir": "./data/output/",
+            "useful_region": {
+                "Default":{
+                        "crop_x": 34,
+                        "crop_y": 34,
+                        "scale": 84,
+                        "binary": false
+                        }
+                  }
+    }
+    
+}
+}

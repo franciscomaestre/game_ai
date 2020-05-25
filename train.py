@@ -3,112 +3,116 @@
 """
 
 import os
-os.environ['OMP_NUM_THREADS'] = '1'
-import argparse
 import torch
-from src.models.actor_critic import ActorCritic
-from src.models.adam_optimizer import GlobalAdam
-from src.environments import create_train_env
-from src.processes.train import local_train
-from src.processes.test import local_test
-import torch.multiprocessing as _mp
 import shutil
+import warnings
+import argparse
+import torch.multiprocessing as _mp
+
+from environments import make_train_env
+from models.actor_critic import ActorCritic
+from models.adam_optimizer import GlobalAdam
+
+from utils.params_manager import ParamsManager
+from processes.train import DiscreteActorCriticTrainProcess
+from processes.test import DiscreteActorCriticTestProcess
+
+warnings.filterwarnings("ignore")
+
+os.environ['OMP_NUM_THREADS'] = '1'
+
+def train():
+
+    ## Obtenemos los argumentos
+    args = get_args()
+    
+    #Cargamos los parametros
+    agent_params, env_params = get_params(args)
+    
+    ## Fijamos una semilla manual para poder estudiar bien los resultados
+    torch.manual_seed(agent_params['seed'])
+
+    ## Creamos las carpetas por defecto
+    _make_default_folders(agent_params)    
+
+    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
+    global_model = get_global_model(agent_params, env_params)
+
+    ## Lanzamos el optimizador
+    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
+
+    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
+    launch_processes(global_model, optimizer, agent_params, env_params)
 
 def get_args():
     parser = argparse.ArgumentParser(
         """Implementacion de refuerzo A3C con el Super Mario Bros""")
-    parser.add_argument("--game", type=str, default="super_mario")  
-    parser.add_argument("--world", type=int, default=1)
-    parser.add_argument("--stage", type=int, default=1)
-    parser.add_argument("--action_type", type=str, default="right")
-    parser.add_argument('--lr', type=float, default=1e-4)
-    parser.add_argument('--gamma', type=float, default=0.9, help='discount factor for rewards')
-    parser.add_argument('--tau', type=float, default=1.0, help='parameter for GAE')
-    parser.add_argument('--beta', type=float, default=0.01, help='entropy coefficient')
-    parser.add_argument("--num_local_steps", type=int, default=50)
-    parser.add_argument("--num_global_steps", type=int, default=5e6)
-    parser.add_argument("--num_processes", type=int, default=14)
-    parser.add_argument("--save_interval", type=int, default=250, help="Number of steps between savings")
-    parser.add_argument("--max_actions", type=int, default=250, help="Maximum repetition steps in test phase")
-    parser.add_argument("--log_path", type=str, default="data/logs/a3c_log")
-    parser.add_argument("--saved_path", type=str, default="data/models")
+    parser.add_argument("--env_name", help="Name of the Gym environment", type=str, default="SuperMarioBros-1-1-v0")
+    parser.add_argument("--env_params", help="Name of the Parameters environment. It could be super_mario or atari", type=str, default="super_mario")
     parser.add_argument("--load_trained_model", type=bool, default=False, help="Load weight from previous trained stage")
-    parser.add_argument("--load_from_previous_stage", type=bool, default=False, help="Load weight from previous trained stage")
-    parser.add_argument("--use_gpu", type=bool, default=False)
     args = parser.parse_args()
     return args
 
-def _make_default_folders(opt):
-    if os.path.isdir(opt.log_path):
-        shutil.rmtree(opt.log_path)
-    os.makedirs(opt.log_path)
-    if not os.path.isdir(opt.saved_path):
-        os.makedirs(opt.saved_path)
+def get_params(args):
+    params_manager= ParamsManager().getInstance()
+    agent_params = params_manager.get_agent_params()
+    env_params = params_manager.get_env_params(args.env_params.lower())
+    env_params['env_name'] = args.env_name
 
-def get_global_model(opt):
+    custom_region_available = False
+    for key, value in env_params['useful_region'].items():
+        if key in env_params['env_name']:
+            env_params['useful_region'] = value
+            custom_region_available = True
+            break
+    if custom_region_available is not True:
+        env_params['useful_region'] = env_params['useful_region']['Default'] 
+
+    return agent_params, env_params
+
+def _make_default_folders(agent_params):
+    if os.path.isdir(agent_params['log_path']):
+        shutil.rmtree(agent_params['log_path'])
+    os.makedirs(agent_params['log_path'])
+    if not os.path.isdir(agent_params['model_path']):
+        os.makedirs(agent_params['model_path'])
+
+def get_global_model(agent_params, env_params):
     ## Creamos en env de entrenamiento
-    env, num_states, num_actions = create_train_env(opt=opt,video=False)
+    env, num_states, num_actions = make_train_env(env_params)
 
     ## Creamos la red neuronal para que vaya aprendiendo
     global_model = ActorCritic(num_states, num_actions)
-    if opt.use_gpu:
+    if agent_params['use_gpu']:
         global_model.cuda()
     global_model.share_memory()
 
     ## Con este bloque cogemos una red ya entrenada
-    if opt.load_trained_model:
-        file_ = "{}/a3c_{}_{}_{}_{}".format(opt.saved_path, opt.game, opt.world, opt.stage, opt.action_type)
-        if os.path.isfile(file_):
-            global_model.load_state_dict(torch.load(file_))
-
-    ## Con este bloque cogemos una red ya entrenada y la usamos como base para un nuevo nivel
-    if opt.load_from_previous_stage:
-        if opt.stage == 1:
-            previous_world = opt.world - 1
-            previous_stage = 4 
-        else:
-            previous_world = opt.world
-            previous_stage = opt.stage - 1
-        file_ = "{}/a3c_{}_{}_{}".format(opt.saved_path, opt.game, previous_world, previous_stage)
+    if agent_params['load_trained_model']:
+        file_ = "{}/a3c_{}".format(agent_params['model_path'], env_params['env_name'])
         if os.path.isfile(file_):
             global_model.load_state_dict(torch.load(file_))
 
     return global_model
 
-def launch_processes(global_model, optimizer):
+def launch_processes(global_model, optimizer, agent_params, env_params):
     ## Arrancamos el multiprocessing
     mp = _mp.get_context("spawn")
 
     processes = []
-    for index in range(opt.num_processes):
+    for index in range(agent_params['num_agents']):
         if index == 0:
-            process = mp.Process(target=local_train, args=(index, opt, global_model, optimizer, True))
+            process = DiscreteActorCriticTrainProcess(index, agent_params, env_params, global_model, optimizer, True)
         else:
-            process = mp.Process(target=local_train, args=(index, opt, global_model, optimizer))
+            process = DiscreteActorCriticTrainProcess(index, agent_params, env_params, global_model, optimizer, False)
         process.start()
         processes.append(process)
 
-    process = mp.Process(target=local_test, args=(opt.num_processes, opt, global_model))
+    process = DiscreteActorCriticTestProcess(agent_params['num_agents'], agent_params, env_params, global_model)
     process.start()
     processes.append(process)
     for process in processes:
         process.join()
 
 if __name__ == "__main__":
-    ## Obtenemos los argumentos
-    opt = get_args()
-    
-    ## Fijamos una semilla manual para poder estudiar bien los resultados
-    torch.manual_seed(123)
-
-    ## Creamos las carpetas por defecto
-    _make_default_folders(opt)    
-
-    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
-    global_model = get_global_model(opt)
-
-    ## Lanzamos el optimizador
-    optimizer = GlobalAdam(global_model.parameters(), lr=opt.lr)
-
-    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
-    launch_processes(global_model, optimizer)
+    train()
