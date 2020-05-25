@@ -46,8 +46,6 @@ def make_train_env(env_params):
     env = CustomSkipFrame(env)
     return env, env.observation_space.shape[0], len(SIMPLE_MOVEMENT)
 
-    return env
-
 class CustomReward(Wrapper):
     
     def __init__(self, env=None, monitor=None):

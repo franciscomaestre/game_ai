@@ -17,8 +17,8 @@ from utils.params_manager import ParamsManager
 from processes.train import DiscreteActorCriticTrainProcess
 from processes.test import DiscreteActorCriticTestProcess
 
-
 os.environ['OMP_NUM_THREADS'] = '1'
+warnings.filterwarnings("ignore")
 
 def train():
 
