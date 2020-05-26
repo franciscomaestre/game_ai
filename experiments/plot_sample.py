@@ -21,23 +21,45 @@ def process_frame_84(observation, frame_conf):
         ret, observation = cv2.threshold(observation,1,255,cv2.THRESH_BINARY)
     return np.reshape(observation,( 1, 84, 84))
 
-#env = gym.make("SpaceInvaders-v0")
-env = gym.make("SuperMarioBros-1-1-v0")
+env = gym.make("SpaceInvaders-v0")
+#env = gym.make("SuperMarioBros-1-1-v0")
 
 env.reset()
 
 params_manager = ParamsManager.getInstance()
-env_params = params_manager.get_env_params('super_mario')
-env_params['useful_region'] = env_params['useful_region']['Default'] 
+env_params = params_manager.get_env_params('atari')
+env_params['useful_region'] = env_params['useful_region']['SpaceInvaders'] 
 
+action = 0
 
-frame, reward0, terminal, info = env.step(0)
+for i in range(185):
+    env.step(action)
+
+frame, reward0, terminal, info = env.step(action)
 observation0 = process_frame_84(frame, env_params['useful_region'] )
 print("After processing: " + str(np.array(observation0).shape))
 
+## Imagen original
 plt.imshow(np.array(np.squeeze(frame)))
 plt.show()
 
+## Imagen Modificada
 plt.imshow(np.array(np.squeeze(observation0)))
 plt.show()
 
+done = False
+
+## Imagen Apilada
+observations_list = []
+for i in range(4):
+    if not done:
+        observation, reward, done, info = env.step(action)
+        observations_list.append(process_frame_84(observation, env_params['useful_region'] ))
+    else:
+        observations_list.append(observation)
+observations_list = np.concatenate(observations_list, 0)[None, :, :, :]
+
+print("After joining 4: " + str(np.array(observations_list).shape))
+
+plt.imshow(np.array(np.squeeze(observations_list)))
+plt.show()
