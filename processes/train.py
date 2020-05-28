@@ -177,7 +177,7 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                 if curr_episode % self.agent_params['save_internal'] == 0 and curr_episode > 0:
                     model_path = "{}/a3c_{}".format(self.agent_params['model_path'], self.env_params['env_name'])
                     torch.save(self.global_model.state_dict(),model_path)
-                if curr_episode % 5 == 0:
+                if curr_episode % 5 == 0 or curr_episode == 1:
                     _save_status(curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, "{}/a3c_{}.csv".format(self.agent_params['model_path'], self.env_params['env_name']))
                 
                 _print_status(curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward)
