@@ -28,24 +28,36 @@ class Monitor:
 def process_frame_84(observation, frame_conf):
     observation = cv2.cvtColor(cv2.resize(observation, ( frame_conf['scale'] + frame_conf["crop_x"], frame_conf['scale'] + frame_conf["crop_y"])), cv2.COLOR_RGB2GRAY)
     observation = observation[frame_conf["crop_y"]:frame_conf["crop_y"]+frame_conf['scale'],frame_conf["crop_x"]:frame_conf["crop_x"]+frame_conf['scale']]
-    observation = cv2.resize(observation, (84, 84))
+    observation = cv2.resize(observation, (84, 84))[None, :, :] / 255.
     if frame_conf['binary']:
         ret, observation = cv2.threshold(observation,1,255,cv2.THRESH_BINARY)
     return np.reshape(observation,( 1, 84, 84))
 
+def process_frame(frame):
+    if frame is not None:
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        frame = cv2.resize(frame, (84, 84))[None, :, :] / 255.
+        return frame
+    else:
+        return np.zeros((1, 84, 84))
+
 class ObservationEnv(gym.ObservationWrapper):
-    def __init__(self, env, frame_conf, monitor = None):
+    def __init__(self, env, frame_conf, monitor = None, version=1):
         gym.ObservationWrapper.__init__(self, env)
-        self.observation_space = Box(0, 255, [1, 84, 84], dtype=np.uint8)
+        self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
         self.frame_conf = frame_conf
         self.monitor = monitor
         self.steps = 0
+        self.version = version
 
     def observation(self, observation):
         if self.monitor:
             self.monitor.record(observation[0][0])
         self.steps += 1
-        return process_frame_84(observation, self.frame_conf)
+        if self.version == 1:
+            return process_frame(observation)
+        else:
+            return process_frame_84(observation, self.frame_conf)
 
 
 class MaxAndSkipEnv(gym.Wrapper):

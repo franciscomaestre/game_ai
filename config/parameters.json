@@ -12,7 +12,7 @@
     "tau": 1.00,
     "beta": 0.01,
     "num_local_steps": 50,
-    "num_global_steps": 5e6,
+    "num_global_steps": 3550,
     "save_internal": 250,
     "max_actions": 250,
     "save_freq_when_perf_improves": 10,
@@ -86,7 +86,7 @@
             "useful_region": {
                 "Default":{
                         "crop_x": 0,
-                        "crop_y": 20,
+                        "crop_y": 0,
                         "scale": 84,
                         "binary": false
                         }

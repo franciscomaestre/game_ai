@@ -8,6 +8,7 @@ import timeit
 import torch.nn.functional as F
 import torch.multiprocessing as _mp
 
+from statistics import mean
 from collections import deque
 from tensorboardX import SummaryWriter
 from torch.distributions import Categorical
@@ -15,7 +16,7 @@ from torch.distributions import Categorical
 from environments import make_train_env
 from models.actor_critic import ActorCritic
 
-def _print_status(curr_episode, start_time, episode_reward, best_reward):
+def _print_status(curr_episode, start_time, episode_reward, mean_reward, best_reward):
     control_time = timeit.default_timer()
     time_diff = int(control_time - start_time)
     seconds = time_diff%60
@@ -23,7 +24,7 @@ def _print_status(curr_episode, start_time, episode_reward, best_reward):
     minutes = math.floor((time_diff)/60.)
     hours = math.floor((minutes)/60.)
     minutes -= hours*60
-    print("Global Process -- Episode {}\tReward: {:.2f}\tBest Reward: {:.2f}\tThe code runs for {} h {} m {} s".format(curr_episode, episode_reward, best_reward, hours, minutes, seconds))
+    print("Global Process -- Episode {}\tReward: {:.2f}\tMean Reward: {:.2f}\tBest Reward: {:.2f}\tThe code runs for {} h {} m {} s".format(curr_episode, episode_reward, mean_reward, best_reward, hours, minutes, seconds))
 
 class DiscreteActorCriticTrainProcess(_mp.Process):
     
@@ -63,6 +64,7 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
 
         episode_reward = 0
         best_reward = -999999
+        episodes_rewards_list = []
 
         while True:
                 
@@ -82,6 +84,7 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
             values = []
             rewards = []
             entropies = []
+            
 
             episode_reward = 0
 
@@ -118,6 +121,8 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                 if done:
                     break
             
+            episodes_rewards_list.append(episode_reward)
+
             if best_reward < episode_reward:
                 best_reward = episode_reward
 
@@ -155,15 +160,15 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                 global_param._grad = local_param.grad
 
             self.optimizer.step()
-
+            
             #Si hemos configurado que se guarde, cada X épocas se encargará de salvarlo. Esto actualizará el que vemos visualmente
             if self.save:
                 if curr_episode % self.agent_params['save_internal'] == 0 and curr_episode > 0:
                     torch.save(self.global_model.state_dict(),
                             "{}/a3c_{}".format(self.agent_params['model_path'], self.env_params['env_name']))
-                _print_status(curr_episode, start_time, episode_reward, best_reward)
+                _print_status(curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward)
 
-            if curr_episode == int(self.agent_params['num_global_steps'] / self.agent_params['num_local_steps']):
+            if curr_episode == self.agent_params['num_global_steps']:
                 print("Training process {} terminated".format(self.index))
                 if self.save:
                     end_time = timeit.default_timer()
