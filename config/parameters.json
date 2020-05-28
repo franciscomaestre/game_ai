@@ -1,7 +1,7 @@
 {
 
   "agent":{
-    "num_agents": 14,
+    "num_agents": 12,
     "seed": 123,
     "model_path": "./data/models/",
     "log_path": "./data/logs/",

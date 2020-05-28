@@ -2,6 +2,7 @@
 @author: Francisco Maestre. Modified version of Viet Nguyen version
 """
 
+import json
 import math
 import torch
 import timeit
@@ -16,7 +17,9 @@ from torch.distributions import Categorical
 from environments import make_train_env
 from models.actor_critic import ActorCritic
 
-def _print_status(curr_episode, start_time, episode_reward, mean_reward, best_reward):
+info_list = []
+
+def _get_time(start_time):
     control_time = timeit.default_timer()
     time_diff = int(control_time - start_time)
     seconds = time_diff%60
@@ -24,7 +27,16 @@ def _print_status(curr_episode, start_time, episode_reward, mean_reward, best_re
     minutes = math.floor((time_diff)/60.)
     hours = math.floor((minutes)/60.)
     minutes -= hours*60
+    return hours, minutes, seconds
+
+def _print_status(curr_episode, start_time, episode_reward, mean_reward, best_reward):
+    hours, minutes, seconds = _get_time(start_time)
     print("Global Process -- Episode {}\tReward: {:.2f}\tMean Reward: {:.2f}\tBest Reward: {:.2f}\tThe code runs for {} h {} m {} s".format(curr_episode, episode_reward, mean_reward, best_reward, hours, minutes, seconds))
+
+def _save_status(curr_episode, start_time, episode_reward, mean_reward, best_reward, file_path):
+    hours, minutes, seconds = _get_time(start_time)
+    with open(file_path, 'a') as f:
+        print("{};{:.2f};{:.2f};{:.2f};{};{};{}".format(curr_episode, episode_reward, mean_reward, best_reward, hours, minutes, seconds), file=f)
 
 class DiscreteActorCriticTrainProcess(_mp.Process):
     
@@ -85,7 +97,6 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
             rewards = []
             entropies = []
             
-
             episode_reward = 0
 
             for _ in range(self.agent_params['num_local_steps']):
@@ -162,10 +173,13 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
             self.optimizer.step()
             
             #Si hemos configurado que se guarde, cada X épocas se encargará de salvarlo. Esto actualizará el que vemos visualmente
-            if self.save:
+            if self.save:              
                 if curr_episode % self.agent_params['save_internal'] == 0 and curr_episode > 0:
-                    torch.save(self.global_model.state_dict(),
-                            "{}/a3c_{}".format(self.agent_params['model_path'], self.env_params['env_name']))
+                    model_path = "{}/a3c_{}".format(self.agent_params['model_path'], self.env_params['env_name'])
+                    torch.save(self.global_model.state_dict(),model_path)
+                if curr_episode % 5 == 0:
+                    _save_status(curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, "{}/a3c_{}.csv".format(self.agent_params['model_path'], self.env_params['env_name']))
+                
                 _print_status(curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward)
 
             if curr_episode == self.agent_params['num_global_steps']:
