@@ -26,7 +26,14 @@ def train(agent_params, env_params):
     torch.manual_seed(agent_params['seed'])
 
     ## Creamos las carpetas por defecto
-    _make_default_folders(agent_params)    
+    _make_default_folders(agent_params)
+
+
+    '''
+    Escenario 1: Versión antigua dentro de Observación
+    '''
+
+    env_params['escenario'] = 'escenario_1'
 
     ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
     global_model = get_global_model(agent_params, env_params)
@@ -36,6 +43,84 @@ def train(agent_params, env_params):
 
     ## Lanzamos los procesos en paralelo para realizar el entrenamiento
     launch_processes(global_model, optimizer, agent_params, env_params)
+
+    '''
+    Escenario 2: Versión antigua dentro de CustomReward
+    '''
+
+    env_params['escenario'] = 'escenario_2'
+
+    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
+    global_model = get_global_model(agent_params, env_params)
+
+    ## Lanzamos el optimizador
+    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
+
+    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
+    launch_processes(global_model, optimizer, agent_params, env_params)
+
+    '''
+    Escenario 3: Versión nueva sin crop en Observación
+    
+
+    env_params['escenario'] = 'escenario_3'
+
+    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
+    global_model = get_global_model(agent_params, env_params)
+
+    ## Lanzamos el optimizador
+    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
+
+    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
+    launch_processes(global_model, optimizer, agent_params, env_params)
+
+    '''
+
+    '''
+    Escenario 4: Versión nueva con crop en Observación
+    '''
+
+    env_params['escenario'] = 'escenario_4'
+
+    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
+    global_model = get_global_model(agent_params, env_params)
+
+    ## Lanzamos el optimizador
+    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
+
+    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
+    launch_processes(global_model, optimizer, agent_params, env_params)
+
+    '''
+    Escenario 5: Versión nueva sin crop en CustomReward
+
+    env_params['escenario'] = 'escenario_5'
+
+    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
+    global_model = get_global_model(agent_params, env_params)
+
+    ## Lanzamos el optimizador
+    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
+
+    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
+    launch_processes(global_model, optimizer, agent_params, env_params)
+    '''
+
+    '''
+    Escenario 6: Versión nueva con crop en CustomReward
+    '''
+
+    env_params['escenario'] = 'escenario_6'
+
+    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
+    global_model = get_global_model(agent_params, env_params)
+
+    ## Lanzamos el optimizador
+    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
+
+    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
+    launch_processes(global_model, optimizer, agent_params, env_params)
+
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -47,7 +132,7 @@ def get_args():
     return args
 
 def get_params(args):
-    params_manager= ParamsManager().getInstance()
+    params_manager= ParamsManager()
     agent_params = params_manager.get_agent_params()
     env_params = params_manager.get_env_params(args.env_params.lower())
     env_params['env_name'] = args.env_name
@@ -72,7 +157,7 @@ def _make_default_folders(agent_params):
 
 def get_global_model(agent_params, env_params):
     ## Creamos en env de entrenamiento
-    env, num_states, num_actions = make_train_env(env_params)
+    _, num_states, num_actions = make_train_env(env_params)
 
     ## Creamos la red neuronal para que vaya aprendiendo
     global_model = ActorCritic(num_states, num_actions)
@@ -90,7 +175,11 @@ def get_global_model(agent_params, env_params):
 
 def launch_processes(global_model, optimizer, agent_params, env_params):
     ## Arrancamos el multiprocessing
-    _mp.set_start_method('spawn')
+    if env_params['escenario'] == 'escenario_1':
+        try:
+            _mp.set_start_method('spawn')
+        except:
+            pass
 
     processes = []
     for index in range(agent_params['num_agents']):
@@ -104,16 +193,22 @@ def launch_processes(global_model, optimizer, agent_params, env_params):
     process = DiscreteActorCriticTestProcess(agent_params['num_agents'], agent_params, env_params, global_model)
     process.start()
     processes.append(process)
+
+    processes[0].join()
+
     for process in processes:
-        process.join()
+        try:
+            process.terminate()
+        except Exception as e:
+            print(e)
 
 if __name__ == "__main__":
-
     ## Obtenemos los argumentos
     args = get_args()
-    
+
     #Cargamos los parametros
     agent_params, env_params = get_params(args)
 
+    train(agent_params, env_params)
 
     train(agent_params, env_params)

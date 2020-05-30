@@ -44,6 +44,7 @@ def get_args():
         """Implementacion de refuerzo A3C con el Super Mario Bros""")
     parser.add_argument("--env_name", help="Name of the Gym environment", type=str, default="SuperMarioBros-1-1-v0")
     parser.add_argument("--env_params", help="Name of the Parameters environment. It could be super_mario or atari", type=str, default="super_mario")
+    parser.add_argument("--escenario", help="", type=str)
     args = parser.parse_args()
     return args
 
@@ -62,6 +63,8 @@ def get_params(args):
             break
     if custom_region_available is not True:
         env_params['useful_region'] = env_params['useful_region']['Default'] 
+    
+    env_params['escenario'] = args.escenario
 
     return agent_params, env_params
 
@@ -75,14 +78,13 @@ def get_trained_model(agent_params, env_params):
 
     ## Recuperamos la red entrenada
     if torch.cuda.is_available():
-        model.load_state_dict(torch.load("{}/a3c_{}".format(agent_params['model_path'], env_params['env_name'])))
+        model.load_state_dict(torch.load("{}/a3c_{}_{}".format(agent_params['model_path'], env_params['env_name'], env_params['escenario'])))
         model.cuda()
     else:
-        model.load_state_dict(torch.load("{}/a3c_{}".format(agent_params['model_path'], env_params['env_name']),
+        model.load_state_dict(torch.load("{}/a3c_{}_{}".format(agent_params['model_path'], env_params['env_name'], env_params['escenario']),
                                          map_location=lambda storage, loc: storage))
     return env, model
 
 if __name__ == "__main__":
-    test()
-    
+    test()    
     
