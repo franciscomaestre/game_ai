@@ -70,8 +70,6 @@ class CustomReward(Wrapper):
         if done:
             if info["flag_get"]:
                 reward += 300
-            else:
-                reward -= 100
 
         return reward / 10.
 
