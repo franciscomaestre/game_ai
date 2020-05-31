@@ -57,7 +57,7 @@ class DiscreteActorCriticTestProcess(_mp.Process):
             episode_reward += reward
             env.render()
             actions.append(action)
-            if curr_step > self.agent_params['num_global_steps'] or actions.count(actions[0]) == actions.maxlen:
+            if curr_step > self.env_params['num_env_steps'] or actions.count(actions[0]) == actions.maxlen:
                 done = True
             
             if done:

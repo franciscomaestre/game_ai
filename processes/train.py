@@ -112,7 +112,7 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                 state = torch.from_numpy(state)
                 if self.agent_params['use_gpu']:
                     state = state.cuda()
-                if curr_step > self.agent_params['num_global_steps']:
+                if curr_step > self.env_params['num_env_steps']:
                     done = True
 
                 if done:
