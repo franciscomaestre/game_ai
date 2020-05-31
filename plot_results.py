@@ -35,6 +35,6 @@ with open('data/models/a3c_SuperMarioBros-1-1-v0.csv', 'r') as read_obj:
         ys = [float(row[2]) for row in list_of_rows if row[0] == label]
         axs[1].plot(xs, ys, label=label)
 
-    axs[1].xticks(np.arange(0,4000,400))
+    plt.xticks(np.arange(0,4000,400))
     axs[1].legend()
     plt.show()
