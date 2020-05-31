@@ -39,7 +39,7 @@ class ParamsManager(object):
     def update_agent_params(self, **kwargs):
         """
         Update the hyper-parameters (and configuration parameters) used by the agent
-        :param kwargs:  Comma-separated, hyper-parameter-key=value pairs. Eg.: lr=0.005, gamma=0.98
+        :param kwargs:  Comma-separated, hyper-parameter-key=value pairs. Eg.: learning_rate=0.005, gamma=0.98
         :return: None
         """
         for key, value in kwargs.items():
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     print("Environment parameters:")
     for k, v in env_params.items():
         print(k, ":", v)
-    params_manager.update_agent_params(lr=0.01, gamma=0.95)
+    params_manager.update_agent_params(learning_rate=0.01, gamma=0.95)
     updated_agent_params = params_manager.get_agent_params()
     print("Updated Agent params:")
     for k, v in updated_agent_params.items():

@@ -24,121 +24,39 @@ class Monitor:
     def record(self, image_array):
         self.pipe.stdin.write(image_array.tostring())
 
+class MonitorEnv(gym.ObservationWrapper):
 
-def process_frame_84(observation, frame_conf):
-    observation = cv2.cvtColor(cv2.resize(observation, ( frame_conf['scale'] + frame_conf["crop_x"], frame_conf['scale'] + frame_conf["crop_y"])), cv2.COLOR_RGB2GRAY)
-    observation = observation[frame_conf["crop_y"]:frame_conf["crop_y"]+frame_conf['scale'],frame_conf["crop_x"]:frame_conf["crop_x"]+frame_conf['scale']]
-    observation = cv2.resize(observation, (84, 84))[None, :, :] / 255.
-    if frame_conf['binary']:
-        ret, observation = cv2.threshold(observation,1,255,cv2.THRESH_BINARY)
-    return np.reshape(observation,( 1, 84, 84))
-
-def process_frame(frame):
-    if frame is not None:
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        frame = cv2.resize(frame, (84, 84))[None, :, :] / 255.
-        return frame
-    else:
-        return np.zeros((1, 84, 84))
-
-class ObservationEnv(gym.ObservationWrapper):
-    def __init__(self, env, frame_conf, monitor = None, version=1):
+    def __init__(self, env, video_path = None):
         gym.ObservationWrapper.__init__(self, env)
-        self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
-        self.frame_conf = frame_conf
-        self.monitor = monitor
-        self.steps = 0
-        self.version = version
+        self.observation_space = Box(low=0, high=1., shape=(1, 84, 84))
+        self.monitor = Monitor(256, 240, video_path)
 
     def observation(self, observation):
         if self.monitor:
             self.monitor.record(observation[0][0])
-        self.steps += 1
-        if self.version == 1:
-            return process_frame(observation)
-        else:
-            return process_frame_84(observation, self.frame_conf)
+        return observation
+
+class ObservationEnv(gym.ObservationWrapper):
+    def __init__(self, env, frame_conf):
+        gym.ObservationWrapper.__init__(self, env)
+        self.observation_space = Box(low=0, high=1., shape=(1, 84, 84))
+        self.frame_conf = frame_conf
+
+    def observation(self, observation):
+        #pasamos a escala de grises
+        observation = cv2.cvtColor(observation, cv2.COLOR_RGB2GRAY)
+        #hacemos un resize a la escala querida
+        total_scale_x = 84 + self.frame_conf["crop_x_l"] + self.frame_conf["crop_x_r"]
+        total_scale_y = 84 + self.frame_conf["crop_y_t"] + self.frame_conf["crop_y_d"]
+        observation = cv2.resize(observation, (total_scale_x, total_scale_y))
+        #cortamos lo que no queremos
+        observation = observation[self.frame_conf["crop_y_t"]: total_scale_y-self.frame_conf["crop_y_d"], self.frame_conf["crop_x_l"]:total_scale_x-self.frame_conf['crop_x_r']]
+        #tras el corte, volvemos a hacer un resize al tamaño que queremos
+        observation = cv2.resize(observation, (84, 84))[None, :, :] / 255.
+        #Pasamos la imagen a binario en caso de ser requerido
+        if self.frame_conf['binary']:
+            ret, observation = cv2.threshold(observation,0,1,cv2.THRESH_BINARY)
+        return np.reshape(observation,( 1, 84, 84))
 
 
-class MaxAndSkipEnv(gym.Wrapper):
-    def __init__(self, env=None, skip=4):
-        """Return only every `skip`-th frame"""
-        gym.Wrapper.__init__(self, env)
-        # most recent raw observations (for max pooling across time steps)
-        self._obs_buffer = deque(maxlen=2)
-        self._skip = skip
 
-    def step(self, action):
-        total_reward = 0.0
-        done = None
-        for _ in range(self._skip):
-            obs, reward, done, info = self.env.step(action)
-            self._obs_buffer.append(obs)
-            total_reward += reward
-            if done:
-                break
-
-        max_frame = np.max(np.stack(self._obs_buffer), axis=0)
-        return max_frame, total_reward, done, info
-
-    def reset(self):
-        """Clear past frame buffer and init. to first obs. from inner env."""
-        self._obs_buffer.clear()
-        obs = self.env.reset()
-        self._obs_buffer.append(obs)
-        return obs
-
-class FrameStack(gym.Wrapper):
-    def __init__(self, env, k = 4):
-        """Stack k last frames.
-        Returns lazy array, which is much more memory efficient.
-        From baselines atari_wrapper
-        """
-        gym.Wrapper.__init__(self, env)
-        self.k = k
-        self.frames = deque([], maxlen=k)
-        shp = env.observation_space.shape
-        self.observation_space = Box(low=0, high=255, shape=(shp[0] * k , shp[1], shp[2]), dtype=np.uint8)
-
-    def reset(self):
-        ob = self.env.reset()
-        for _ in range(self.k):
-            self.frames.append(ob)
-        return np.array(self._get_ob())
-
-    def step(self, action):
-        ob, reward, done, info = self.env.step(action)
-        self.frames.append(ob)
-        return self._get_ob(), reward, done, info
-
-    def _get_ob(self):
-        assert len(self.frames) == self.k
-        return LazyFrames(list(self.frames))
-
-class LazyFrames(object):
-    def __init__(self, frames):
-        """This object ensures that common frames between the observations are only stored once.
-        It exists purely to optimize memory usage which can be huge for DQN's 1M frames replay
-        buffers.
-        This object should only be converted to numpy array before being passed to the model.
-        """
-        self._frames = frames
-        self._out = None
-
-    def _force(self):
-        if self._out is None:
-            self._out = np.concatenate(self._frames, axis=0)
-            self._frames = None
-        return self._out
-
-    def __array__(self, dtype=None):
-        out = self._force()
-        if dtype is not None:
-            out = out.astype(dtype)
-        return out
-
-    def __len__(self):
-        return len(self._force())
-
-    def __getitem__(self, i):
-        return self._force()[i]

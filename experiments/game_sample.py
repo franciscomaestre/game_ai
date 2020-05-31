@@ -16,7 +16,7 @@ from environments import make_train_env
 
 env_name = "SuperMarioBros-1-1-v0"
 env_params = "super_mario"
-action = 0
+action = 2
 
 params_manager = ParamsManager.getInstance()
 env_params = params_manager.get_env_params(env_params)
@@ -27,7 +27,9 @@ env, num_states, num_actions = make_train_env(env_params)
 
 env.reset()
 
-observation, reward, done, info = env.step(action)
+observation, reward, done, info = env.step(env.action_space.sample())
 
-#plt.imshow(observation[0][1])
-#plt.show()
+print("After processing: " + str(np.array(observation).shape))
+
+plt.imshow(np.array(np.concatenate(observation[0],0)))
+plt.show()

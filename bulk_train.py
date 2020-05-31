@@ -10,8 +10,8 @@ import argparse
 import torch.multiprocessing as _mp
 
 from environments import make_train_env
-from models.actor_critic import ActorCritic
-from models.adam_optimizer import GlobalAdam
+from models.discrete import ActorCritic
+from models.discrete import GlobalAdam
 
 from utils.params_manager import ParamsManager
 from processes.train import DiscreteActorCriticTrainProcess
@@ -19,6 +19,40 @@ from processes.test import DiscreteActorCriticTestProcess
 
 os.environ['OMP_NUM_THREADS'] = '1'
 warnings.filterwarnings("ignore")
+
+def bulk_train(agent_params, env_params):
+
+    agent_params['train_name'] = "escenario_sin_crop"
+    env_params['useful_region']["crop_x_l"] = 0
+    env_params['useful_region']["crop_x_r"] = 0
+    env_params['useful_region']["crop_y_t"] = 0
+    env_params['useful_region']["crop_x_d"] = 0
+    env_params['skip_rate'] = 0
+    train(agent_params, env_params)
+
+    agent_params['train_name'] = "escenario_con_crop"
+    env_params['useful_region']["crop_x_l"] = 0
+    env_params['useful_region']["crop_x_r"] = 0
+    env_params['useful_region']["crop_y_t"] = 20
+    env_params['useful_region']["crop_x_d"] = 5
+    env_params['skip_rate'] = 0
+    train(agent_params, env_params)
+
+    agent_params['train_name'] = "escenario_sin_crop_sk_2"
+    env_params['useful_region']["crop_x_l"] = 0
+    env_params['useful_region']["crop_x_r"] = 0
+    env_params['useful_region']["crop_y_t"] = 0
+    env_params['useful_region']["crop_x_d"] = 0
+    env_params['skip_rate'] = 2
+    train(agent_params, env_params)
+
+    agent_params['train_name'] = "escenario_con_crop_sk_2"
+    env_params['useful_region']["crop_x_l"] = 0
+    env_params['useful_region']["crop_x_r"] = 0
+    env_params['useful_region']["crop_y_t"] = 20
+    env_params['useful_region']["crop_x_d"] = 5
+    env_params['skip_rate'] = 2
+    train(agent_params, env_params)
 
 def train(agent_params, env_params):
     
@@ -28,95 +62,11 @@ def train(agent_params, env_params):
     ## Creamos las carpetas por defecto
     _make_default_folders(agent_params)
 
-
-    '''
-    Escenario 1: Versión antigua dentro de Observación
-    '''
-
-    env_params['escenario'] = 'escenario_1'
-
     ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
     global_model = get_global_model(agent_params, env_params)
 
     ## Lanzamos el optimizador
-    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
-
-    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
-    launch_processes(global_model, optimizer, agent_params, env_params)
-
-    '''
-    Escenario 2: Versión antigua dentro de CustomReward
-    '''
-
-    env_params['escenario'] = 'escenario_2'
-
-    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
-    global_model = get_global_model(agent_params, env_params)
-
-    ## Lanzamos el optimizador
-    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
-
-    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
-    launch_processes(global_model, optimizer, agent_params, env_params)
-
-    '''
-    Escenario 3: Versión nueva sin crop en Observación
-    
-
-    env_params['escenario'] = 'escenario_3'
-
-    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
-    global_model = get_global_model(agent_params, env_params)
-
-    ## Lanzamos el optimizador
-    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
-
-    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
-    launch_processes(global_model, optimizer, agent_params, env_params)
-
-    '''
-
-    '''
-    Escenario 4: Versión nueva con crop en Observación
-    '''
-
-    env_params['escenario'] = 'escenario_4'
-
-    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
-    global_model = get_global_model(agent_params, env_params)
-
-    ## Lanzamos el optimizador
-    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
-
-    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
-    launch_processes(global_model, optimizer, agent_params, env_params)
-
-    '''
-    Escenario 5: Versión nueva sin crop en CustomReward
-
-    env_params['escenario'] = 'escenario_5'
-
-    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
-    global_model = get_global_model(agent_params, env_params)
-
-    ## Lanzamos el optimizador
-    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
-
-    ## Lanzamos los procesos en paralelo para realizar el entrenamiento
-    launch_processes(global_model, optimizer, agent_params, env_params)
-    '''
-
-    '''
-    Escenario 6: Versión nueva con crop en CustomReward
-    '''
-
-    env_params['escenario'] = 'escenario_6'
-
-    ## Arrancamos el modelo para entrenar (ya sea desde cero o con una versión previa)
-    global_model = get_global_model(agent_params, env_params)
-
-    ## Lanzamos el optimizador
-    optimizer = GlobalAdam(global_model.parameters(), lr=agent_params['learning_rate'])
+    optimizer = GlobalAdam(global_model.parameters(), learning_rate=agent_params['learning_rate'])
 
     ## Lanzamos los procesos en paralelo para realizar el entrenamiento
     launch_processes(global_model, optimizer, agent_params, env_params)
@@ -127,7 +77,6 @@ def get_args():
         """Implementacion de refuerzo A3C con el Super Mario Bros""")
     parser.add_argument("--env_name", help="Name of the Gym environment", type=str, default="SuperMarioBros-1-1-v0")
     parser.add_argument("--env_params", help="Name of the Parameters environment. It could be super_mario or atari", type=str, default="super_mario")
-    parser.add_argument("--load_trained_model", type=bool, default=False, help="Load weight from previous trained stage")
     args = parser.parse_args()
     return args
 
@@ -165,21 +114,14 @@ def get_global_model(agent_params, env_params):
         global_model.cuda()
     global_model.share_memory()
 
-    ## Con este bloque cogemos una red ya entrenada
-    if agent_params['load_trained_model']:
-        file_ = "{}/a3c_{}".format(agent_params['model_path'], env_params['env_name'])
-        if os.path.isfile(file_):
-            global_model.load_state_dict(torch.load(file_))
-
     return global_model
 
 def launch_processes(global_model, optimizer, agent_params, env_params):
     ## Arrancamos el multiprocessing
-    if env_params['escenario'] == 'escenario_1':
-        try:
-            _mp.set_start_method('spawn')
-        except:
-            pass
+    try:
+        _mp.set_start_method('spawn')
+    except:
+        pass
 
     processes = []
     for index in range(agent_params['num_agents']):
@@ -209,6 +151,4 @@ if __name__ == "__main__":
     #Cargamos los parametros
     agent_params, env_params = get_params(args)
 
-    train(agent_params, env_params)
-
-    train(agent_params, env_params)
+    bulk_train(agent_params, env_params)

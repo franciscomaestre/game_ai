@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.multiprocessing as _mp
 
 from environments import make_train_env
-from models.actor_critic import ActorCritic
+from models.discrete import ActorCritic
 from utils.params_manager import ParamsManager
 from processes.test import DiscreteActorCriticTestProcess
 
@@ -44,7 +44,7 @@ def get_args():
         """Implementacion de refuerzo A3C con el Super Mario Bros""")
     parser.add_argument("--env_name", help="Name of the Gym environment", type=str, default="SuperMarioBros-1-1-v0")
     parser.add_argument("--env_params", help="Name of the Parameters environment. It could be super_mario or atari", type=str, default="super_mario")
-    parser.add_argument("--escenario", help="", type=str)
+    parser.add_argument("--train_name", help="Name of the training. Put whatever you want", type=str, default="train_mario")
     args = parser.parse_args()
     return args
 
@@ -53,7 +53,8 @@ def get_params(args):
     agent_params = params_manager.get_agent_params()
     env_params = params_manager.get_env_params(args.env_params.lower())
     env_params['env_name'] = args.env_name
-    env_params['video'] = True
+    env_params['record'] = True
+    agent_params['train_name'] = args.train_name
 
     custom_region_available = False
     for key, value in env_params['useful_region'].items():
@@ -64,8 +65,6 @@ def get_params(args):
     if custom_region_available is not True:
         env_params['useful_region'] = env_params['useful_region']['Default'] 
     
-    env_params['escenario'] = args.escenario
-
     return agent_params, env_params
 
 def get_trained_model(agent_params, env_params):
@@ -78,10 +77,10 @@ def get_trained_model(agent_params, env_params):
 
     ## Recuperamos la red entrenada
     if torch.cuda.is_available():
-        model.load_state_dict(torch.load("{}/a3c_{}_{}".format(agent_params['model_path'], env_params['env_name'], env_params['escenario'])))
+        model.load_state_dict(torch.load("{}/a3c_{}_{}".format(agent_params['model_path'], env_params['env_name'], agent_params['train_name'])))
         model.cuda()
     else:
-        model.load_state_dict(torch.load("{}/a3c_{}_{}".format(agent_params['model_path'], env_params['env_name'], env_params['escenario']),
+        model.load_state_dict(torch.load("{}/a3c_{}_{}".format(agent_params['model_path'], env_params['env_name'], agent_params['train_name']),
                                          map_location=lambda storage, loc: storage))
     return env, model
 

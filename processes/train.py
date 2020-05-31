@@ -15,7 +15,7 @@ from tensorboardX import SummaryWriter
 from torch.distributions import Categorical
 
 from environments import make_train_env
-from models.actor_critic import ActorCritic
+from models.discrete import ActorCritic
 
 info_list = []
 
@@ -29,14 +29,14 @@ def _get_time(start_time):
     minutes -= hours*60
     return hours, minutes, seconds
 
-def _print_status(escenario, curr_episode, start_time, episode_reward, mean_reward, best_reward):
+def _print_status(train_name, curr_episode, start_time, episode_reward, mean_reward, best_reward, flag_get):
     hours, minutes, seconds = _get_time(start_time)
-    print("Global Process -- {}\t Episode {}\tReward: {:.2f}\tMean Reward: {:.2f}\tBest Reward: {:.2f}\tThe code runs for {} h {} m {} s".format(escenario, curr_episode, episode_reward, mean_reward, best_reward, hours, minutes, seconds))
+    print("Global Process -- {}\t Episode {}\tReward: {:.2f}\tMean Reward: {:.2f}\tBest Reward: {:.2f}\tFlag:{}\tThe code runs for {} h {} m {} s".format(train_name, curr_episode, episode_reward, mean_reward, best_reward, flag_get, hours, minutes, seconds))
 
-def _save_status(escenario, curr_episode, start_time, episode_reward, mean_reward, best_reward, file_path):
+def _save_status(train_name, curr_episode, start_time, episode_reward, mean_reward, best_reward, flag_get, file_path):
     hours, minutes, seconds = _get_time(start_time)
     with open(file_path, 'a') as f:
-        print("{};{};{:.2f};{:.2f};{:.2f};{};{};{}".format(escenario,curr_episode, episode_reward, mean_reward, best_reward, hours, minutes, seconds), file=f)
+        print("{};{};{:.2f};{:.2f};{:.2f};{};{};{};{}".format(train_name,curr_episode, episode_reward, mean_reward, best_reward, flag_get, hours, minutes, seconds), file=f)
 
 class DiscreteActorCriticTrainProcess(_mp.Process):
     
@@ -108,7 +108,7 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                 m = Categorical(policy)
                 action = m.sample().item()
 
-                state, reward, done, _ = env.step(action)
+                state, reward, done, step_info = env.step(action)
                 state = torch.from_numpy(state)
                 if self.agent_params['use_gpu']:
                     state = state.cuda()
@@ -174,12 +174,12 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
             #Si hemos configurado que se guarde, cada X épocas se encargará de salvarlo. Esto actualizará el que vemos visualmente
             if self.save:              
                 if curr_episode % self.agent_params['save_internal'] == 0 and curr_episode > 0:
-                    model_path = "{}/a3c_{}_{}".format(self.agent_params['model_path'], self.env_params['env_name'],self.env_params['escenario'])
+                    model_path = "{}/a3c_{}_{}".format(self.agent_params['model_path'], self.env_params['env_name'],self.agent_params['train_name'])
                     torch.save(self.global_model.state_dict(),model_path)
                 if curr_episode % 25 == 0 or curr_episode == 1:
-                    _save_status(self.env_params['escenario'],curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, "{}/a3c_{}.csv".format(self.agent_params['model_path'], self.env_params['env_name']))
+                    _save_status(self.agent_params['train_name'],curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, step_info["flag_get"], "{}/a3c_{}.csv".format(self.agent_params['model_path'], self.env_params['env_name']))
                 
-                _print_status(self.env_params['escenario'], curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward)
+                _print_status(self.agent_params['train_name'], curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, step_info["flag_get"])
 
             if curr_episode == self.agent_params['num_global_steps']:
                 print("Training process {} terminated".format(self.index))

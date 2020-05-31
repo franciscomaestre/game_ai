@@ -10,7 +10,7 @@ import torch.multiprocessing as _mp
 from collections import deque
 from tensorboardX import SummaryWriter
 from environments import make_train_env
-from models.actor_critic import ActorCritic
+from models.discrete import ActorCritic
 from torch.distributions import Categorical
 
 class DiscreteActorCriticTestProcess(_mp.Process):
