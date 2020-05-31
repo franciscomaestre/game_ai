@@ -52,8 +52,8 @@ class CustomReward(Wrapper):
         return observation, self.reward(reward, done, info), done, info
 
     def reward(self, reward, done, info):
-
-        ## Si sube nuestro score damos un pequeño reward. Si ha sido gracias a coger la bandera, el reward es mayor
+        reward = 0
+        ## Si sube nuestro score damos un pequeño reward
         reward += (info["score"] - self.curr_score) / 40.
         self.curr_score = info["score"]
 
@@ -63,15 +63,15 @@ class CustomReward(Wrapper):
 
         ## Penalizamos fuertemente perder una vida
         if info["life"] < self.curr_life:
-            reward -= 150
+            reward -= 100
         self.curr_life = info["life"]
 
         ## En caso de terminar la partida, si es porque hemos ganado, damos un premio, sino penalizamos
         if done:
             if info["flag_get"]:
-                reward += 150
+                reward += 300
             else:
-                reward -= 150
+                reward -= 100
 
         return reward / 10.
 
@@ -88,9 +88,8 @@ class CustomSkipFrame(Wrapper):
         self.skip = skip
 
     def step(self, action):
-        total_reward = 0
         observation, reward, done, info = self.env.step(action)
-        total_reward += reward
+        total_reward = reward
         for _skip in range(self.skip):
             if not done:
                 observation, reward, done, info = self.env.step(action)
@@ -108,10 +107,9 @@ class CustomStackFrame(Wrapper):
         self.skip = skip
 
     def step(self, action):
-        total_reward = 0
         observations_list = []
         observation, reward, done, info = self.env.step(action)
-        total_reward += reward
+        total_reward = reward
         observations_list.append(observation)
         for _stack in range(self.stack-1):
             if not done:

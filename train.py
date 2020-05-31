@@ -109,5 +109,5 @@ if __name__ == "__main__":
     #Cargamos los parametros
     agent_params, env_params = get_params(args)
 
-
+    #Lanzamos el entrenamiento
     train(agent_params, env_params)

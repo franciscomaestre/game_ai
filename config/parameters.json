@@ -1,7 +1,7 @@
 {
 
   "agent":{
-    "num_agents": 15,
+    "num_agents": 12,
     "seed": 123,
     "model_path": "./data/models/",
     "log_path": "./data/logs/",
@@ -12,7 +12,7 @@
     "tau": 1.00,
     "beta": 0.01,
     "num_local_steps": 50,
-    "num_global_steps": 3800,
+    "num_global_steps": 3500,
     "save_internal": 250,
     "max_actions": 250,
     "use_gpu": false
@@ -21,7 +21,7 @@
   "env": {
     "atari": {
             "type": "atari",
-            "num_env_steps": 15000,
+            "num_env_steps": 1000,
             "episodic_life": true,
             "num_frames_to_stack": 4,
             "skip_rate": 2,

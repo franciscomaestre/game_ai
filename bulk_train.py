@@ -22,36 +22,15 @@ warnings.filterwarnings("ignore")
 
 def bulk_train(agent_params, env_params):
 
-    agent_params['train_name'] = "escenario_sin_crop"
-    env_params['useful_region']["crop_x_l"] = 0
-    env_params['useful_region']["crop_x_r"] = 0
-    env_params['useful_region']["crop_y_t"] = 0
-    env_params['useful_region']["crop_x_d"] = 0
-    env_params['skip_rate'] = 0
+    agent_params['train_name'] = "base"
     train(agent_params, env_params)
 
-    agent_params['train_name'] = "escenario_con_crop"
-    env_params['useful_region']["crop_x_l"] = 0
-    env_params['useful_region']["crop_x_r"] = 0
-    env_params['useful_region']["crop_y_t"] = 20
-    env_params['useful_region']["crop_x_d"] = 5
-    env_params['skip_rate'] = 0
+    agent_params['train_name'] = "base_lr_3"
+    env_params['learning_rate'] = 1e-3
     train(agent_params, env_params)
 
-    agent_params['train_name'] = "escenario_sin_crop_sk_2"
-    env_params['useful_region']["crop_x_l"] = 0
-    env_params['useful_region']["crop_x_r"] = 0
-    env_params['useful_region']["crop_y_t"] = 0
-    env_params['useful_region']["crop_x_d"] = 0
-    env_params['skip_rate'] = 2
-    train(agent_params, env_params)
-
-    agent_params['train_name'] = "escenario_con_crop_sk_2"
-    env_params['useful_region']["crop_x_l"] = 0
-    env_params['useful_region']["crop_x_r"] = 0
-    env_params['useful_region']["crop_y_t"] = 20
-    env_params['useful_region']["crop_x_d"] = 5
-    env_params['skip_rate'] = 2
+    agent_params['train_name'] = "base_local_steps_100"
+    env_params['num_local_steps'] = 100
     train(agent_params, env_params)
 
 def train(agent_params, env_params):
