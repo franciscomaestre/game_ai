@@ -22,18 +22,18 @@ class Monitor:
             pass
 
     def record(self, image_array):
-        self.pipe.stdin.write(image_array.tostring())
+        self.pipe.stdin.write(image_array)
 
 class MonitorEnv(gym.ObservationWrapper):
 
     def __init__(self, env, video_path = None):
         gym.ObservationWrapper.__init__(self, env)
-        self.observation_space = Box(low=0, high=1., shape=(1, 84, 84))
-        self.monitor = Monitor(256, 240, video_path)
+        self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
+        self.monitor = Monitor(256, 256, video_path)
 
     def observation(self, observation):
         if self.monitor:
-            self.monitor.record(observation[0][0])
+            self.monitor.record(np.array(observation))
         return observation
 
 class ObservationEnv(gym.ObservationWrapper):

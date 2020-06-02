@@ -21,17 +21,33 @@ os.environ['OMP_NUM_THREADS'] = '1'
 warnings.filterwarnings("ignore")
 
 def bulk_train(agent_params, env_params):
+    '''
+    agent_params['train_name'] = "env_params['skip_rate'] = 3"
+    env_params['gamma'] = 0.97
+    env_params['learning_rate'] = 1e-5
+    env_params['skip_rate'] = 3
+    train(agent_params, env_params)
+    '''
 
-    agent_params['train_name'] = "base"
+    agent_params['num_global_steps'] = 2000
+    env_params['env_name'] = 'SuperMarioBros-1-1-v0'
+    env_params['gamma'] = 0.97
+    env_params['learning_rate'] = 1e-5
+
+    agent_params['train_name'] = "base_1_1_sk_4"
+    env_params['skip_rate'] = 4
     train(agent_params, env_params)
 
-    agent_params['train_name'] = "base_lr_3"
-    env_params['learning_rate'] = 1e-3
+    agent_params['train_name'] = "base_1_1_sk_3_lr_5"
+    env_params['skip_rate'] = 3
+    env_params['learning_rate'] = 1e-5
     train(agent_params, env_params)
 
-    agent_params['train_name'] = "base_local_steps_100"
-    env_params['num_local_steps'] = 100
+    agent_params['train_name'] = "base_1_1_sk_3_lr_6"
+    env_params['skip_rate'] = 3
+    env_params['learning_rate'] = 1e-6
     train(agent_params, env_params)
+
 
 def train(agent_params, env_params):
     
