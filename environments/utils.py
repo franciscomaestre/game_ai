@@ -7,38 +7,42 @@ import numpy as np
 import math
 import subprocess as sp
 
-from gym import Wrapper
+from gym import Wrapper, ObservationWrapper
 from gym.spaces import Box
 from collections import deque
 
 class Monitor:
     def __init__(self, width, height, saved_path):
 
-        self.command = ["ffmpeg", "-y", "-f", "rawvideo", "-vcodec", "rawvideo", "-s", "{}X{}".format(width, height),
+        self.command = ["ffmpeg", "-loglevel", "error", "-y", "-f", "rawvideo", "-vcodec", "rawvideo", "-s", "{}X{}".format(width, height),
                         "-pix_fmt", "rgb24", "-r", "80", "-i", "-", "-an", "-vcodec", "mpeg4", saved_path]
+
         try:
             self.pipe = sp.Popen(self.command, stdin=sp.PIPE, stderr=sp.PIPE)
         except FileNotFoundError:
             pass
 
     def record(self, image_array):
-        self.pipe.stdin.write(image_array)
+        self.pipe.stdin.write(image_array.tostring())
 
-class MonitorEnv(gym.ObservationWrapper):
+class MonitorEnv(Wrapper):
 
     def __init__(self, env, video_path = None):
-        gym.ObservationWrapper.__init__(self, env)
+        super(MonitorEnv, self).__init__(env)
         self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
-        self.monitor = Monitor(256, 256, video_path)
+        self.monitor = Monitor(256, 240, video_path)
 
-    def observation(self, observation):
-        if self.monitor:
-            self.monitor.record(np.array(observation))
-        return observation
+    def step(self, action):
+        observation, reward, done, info = self.env.step(action)
+        self.monitor.record(observation)
+        return observation, reward, done, info
 
-class ObservationEnv(gym.ObservationWrapper):
+    def reset(self):
+        return self.env.reset()
+
+class ObservationEnv(ObservationWrapper):
     def __init__(self, env, frame_conf):
-        gym.ObservationWrapper.__init__(self, env)
+        super(ObservationEnv, self).__init__(env)
         self.observation_space = Box(low=0, high=1., shape=(1, 84, 84))
         self.frame_conf = frame_conf
 

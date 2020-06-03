@@ -21,31 +21,36 @@ os.environ['OMP_NUM_THREADS'] = '1'
 warnings.filterwarnings("ignore")
 
 def bulk_train(agent_params, env_params):
-    '''
-    agent_params['train_name'] = "env_params['skip_rate'] = 3"
-    env_params['gamma'] = 0.97
-    env_params['learning_rate'] = 1e-5
-    env_params['skip_rate'] = 3
-    train(agent_params, env_params)
-    '''
 
-    agent_params['num_global_steps'] = 2000
+
+    agent_params['num_global_steps'] = 2100
     env_params['env_name'] = 'SuperMarioBros-1-1-v0'
-    env_params['gamma'] = 0.97
-    env_params['learning_rate'] = 1e-5
+
+    agent_params['train_name'] = "base_1_1"
+    train(agent_params, env_params)
 
     agent_params['train_name'] = "base_1_1_sk_4"
     env_params['skip_rate'] = 4
     train(agent_params, env_params)
 
-    agent_params['train_name'] = "base_1_1_sk_3_lr_5"
-    env_params['skip_rate'] = 3
-    env_params['learning_rate'] = 1e-5
-    train(agent_params, env_params)
-
     agent_params['train_name'] = "base_1_1_sk_3_lr_6"
     env_params['skip_rate'] = 3
     env_params['learning_rate'] = 1e-6
+    train(agent_params, env_params)
+
+    agent_params['train_name'] = "base_1_1_sk_4_lr_6"
+    env_params['skip_rate'] = 4
+    env_params['learning_rate'] = 1e-6
+    train(agent_params, env_params)
+
+    agent_params['train_name'] = "base_1_1_sk_3_lr_4"
+    env_params['skip_rate'] = 3
+    env_params['learning_rate'] = 1e-4
+    train(agent_params, env_params)
+
+    agent_params['train_name'] = "base_1_1_sk_4_lr_4"
+    env_params['skip_rate'] = 4
+    env_params['learning_rate'] = 1e-4
     train(agent_params, env_params)
 
 
@@ -98,6 +103,8 @@ def _make_default_folders(agent_params):
     os.makedirs(agent_params['log_path'])
     if not os.path.isdir(agent_params['model_path']):
         os.makedirs(agent_params['model_path'])
+    if not os.path.isdir(agent_params['video_path']):
+        os.makedirs(agent_params['video_path'])
 
 def get_global_model(agent_params, env_params):
     ## Creamos en env de entrenamiento

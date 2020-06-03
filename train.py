@@ -69,6 +69,8 @@ def _make_default_folders(agent_params):
     os.makedirs(agent_params['log_path'])
     if not os.path.isdir(agent_params['model_path']):
         os.makedirs(agent_params['model_path'])
+    if not os.path.isdir(agent_params['video_path']):
+        os.makedirs(agent_params['video_path'])
 
 def get_global_model(agent_params, env_params):
     ## Creamos en env de entrenamiento
