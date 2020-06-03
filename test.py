@@ -34,6 +34,9 @@ def test():
     ## Cargamos el modelo entrenado
     _, global_model = get_trained_model(agent_params, env_params)
 
+    ## Marcamos que sí queremos grabar
+    env_params['record'] = True
+
     ## Empezamos a ejecutar el modelo entrenado
     process = DiscreteActorCriticTestProcess(0, agent_params, env_params, global_model)
     process.start()
@@ -52,9 +55,10 @@ def get_params(args):
     params_manager= ParamsManager().getInstance()
     agent_params = params_manager.get_agent_params()
     env_params = params_manager.get_env_params(args.env_params.lower())
+
     env_params['env_name'] = args.env_name
-    env_params['record'] = True
     agent_params['train_name'] = args.train_name
+
     env_params['gamma'] = 0.97
     env_params['learning_rate'] = 1e-5
     env_params['skip_rate'] = 3

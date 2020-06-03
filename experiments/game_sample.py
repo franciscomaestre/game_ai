@@ -24,19 +24,6 @@ from gym import Wrapper
 from gym.spaces import Box
 from collections import deque
 
-class Monitor:
-    def __init__(self, width, height, saved_path):
-
-        self.command = ["ffmpeg", "-y", "-f", "rawvideo", "-vcodec", "rawvideo", "-s", "{}X{}".format(width, height),
-                        "-pix_fmt", "rgb24", "-r", "80", "-i", "-", "-an", "-vcodec", "mpeg4", saved_path]
-        try:
-            self.pipe = sp.Popen(self.command, stdin=sp.PIPE, stderr=sp.PIPE)
-        except FileNotFoundError:
-            pass
-
-    def record(self, image_array):
-        self.pipe.stdin.write(image_array.tostring())
-
 env_name = "SuperMarioBros-1-1-v0"
 env_params = "super_mario"
 action = 2
