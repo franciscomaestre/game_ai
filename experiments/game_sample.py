@@ -40,4 +40,9 @@ env.reset()
 
 for _ in range(10000):
     observation, reward, done, info = env.step(env.action_space.sample())
-    env.render()
+    ## Imagen Modificada
+    plt.imshow(np.array(np.squeeze(observation[0][0])))
+    plt.show(block=False)
+    plt.pause(1)
+    plt.close()
+    #env.render()
