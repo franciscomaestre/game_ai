@@ -25,52 +25,28 @@ def bulk_train(agent_params, env_params):
     env_params['env_name'] = 'SuperMarioBros-1-1-v0'
     agent_params['num_global_steps'] = 2000
 
-    agent_params['train_name'] = "base_1_1_sk_3_lr_4_g_90"
-    agent_params['learning_rate'] = 1e-4
-    agent_params['gamma'] = 0.90
-    env_params['skip_rate'] = 3
-    train(agent_params, env_params)
-
-    agent_params['train_name'] = "base_1_1_sk_4_lr_4_g_90"
-    agent_params['learning_rate'] = 1e-4
-    agent_params['gamma'] = 0.90
-    env_params['skip_rate'] = 4
-    train(agent_params, env_params)
-
     agent_params['train_name'] = "base_1_1_sk_3_lr_4_g_93"
     agent_params['learning_rate'] = 1e-4
     agent_params['gamma'] = 0.93
     env_params['skip_rate'] = 3
     train(agent_params, env_params)
 
-    agent_params['train_name'] = "base_1_1_sk_3_lr_5_g_93"
-    agent_params['learning_rate'] = 1e-5
-    agent_params['gamma'] = 0.93
-    env_params['skip_rate'] = 3
-    train(agent_params, env_params)
-
-    agent_params['train_name'] = "base_1_1_sk_3_lr_2_g_93"
-    agent_params['learning_rate'] = 1e-2
-    agent_params['gamma'] = 0.93
-    env_params['skip_rate'] = 3
-    train(agent_params, env_params)
-
-    agent_params['train_name'] = "base_1_1_sk_3_lr_4_g_87"
+    agent_params['train_name'] = "base_1_1_sk_4_lr_4_g_93"
     agent_params['learning_rate'] = 1e-4
-    agent_params['gamma'] = 0.87
+    agent_params['gamma'] = 0.93
+    env_params['skip_rate'] = 4
+    train(agent_params, env_params)
+
+    agent_params['train_name'] = "base_1_1_sk_3_lr_4_g_96"
+    agent_params['learning_rate'] = 1e-4
+    agent_params['gamma'] = 0.96
     env_params['skip_rate'] = 3
     train(agent_params, env_params)
 
-    agent_params['train_name'] = "base_1_1_sk_3_lr_5_g_87"
-    agent_params['learning_rate'] = 1e-5
-    agent_params['gamma'] = 0.87
-    env_params['skip_rate'] = 3
-    train(agent_params, env_params)
-
-    agent_params['train_name'] = "base_1_1_sk_3_lr_2_g_87"
-    agent_params['learning_rate'] = 1e-2
-    agent_params['gamma'] = 0.87
-    env_params['skip_rate'] = 3
+    agent_params['train_name'] = "base_1_1_sk_4_lr_4_g_96"
+    agent_params['learning_rate'] = 1e-4
+    agent_params['gamma'] = 0.96
+    env_params['skip_rate'] = 4
     train(agent_params, env_params)
 
 
