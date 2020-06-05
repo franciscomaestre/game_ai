@@ -31,7 +31,7 @@ def make_train_env(env_params):
         env = MonitorEnv(env, video_path="{}/video_{}.mp4".format(env_params['video_dir'], env_params['env_name']))
     
     env = CustomReward(env)
-    env = ObservationEnv(env, frame_conf=env_params['useful_region'])        
+    env = ObservationEnv(env, frame_conf=env_params['useful_region'])      
     env = CustomSkipFrame(env, skip=env_params['skip_rate'])
     env = CustomStackFrame(env, stack=env_params['num_frames_to_stack'])
 

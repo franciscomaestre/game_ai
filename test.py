@@ -59,10 +59,6 @@ def get_params(args):
     env_params['env_name'] = args.env_name
     agent_params['train_name'] = args.train_name
 
-    env_params['gamma'] = 0.97
-    env_params['learning_rate'] = 1e-5
-    env_params['skip_rate'] = 3
-
     custom_region_available = False
     for key, value in env_params['useful_region'].items():
         if key in env_params['env_name']:

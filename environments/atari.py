@@ -19,17 +19,13 @@ from .utils import ObservationEnv, Monitor
 def make_train_env(env_params):
     env = gym.make(env_params['env_name'])
 
-    if 'video' in env_params.keys():
-        video_path = "{}video_{}.mp4".format(env_params['video_dir'], env_params['env_name'])
-        monitor = Monitor(256, 240, video_path)
-    else:
-        monitor = None
-
     actions = env.env.get_action_meanings()
 
-    env = ObservationEnv(env, env_params['useful_region'], monitor)
     env = CustomReward(env)
-    env = CustomSkipFrame(env)
+    env = ObservationEnv(env, frame_conf=env_params['useful_region'])      
+    env = CustomSkipFrame(env, skip=env_params['skip_rate'])
+    env = CustomStackFrame(env, stack=env_params['num_frames_to_stack'])
+
     return env, env.observation_space.shape[0], len(actions)
 
 class CustomReward(Wrapper):
@@ -46,10 +42,6 @@ class CustomReward(Wrapper):
     def step(self, action):
         observation, reward, done, info = self.env.step(action)
         '''Aquí adaptamos la observacion para pintarla'''
-        
-        if self.monitor:
-            self.monitor.record(observation)
-
         return observation, self._reward(reward, done, info) , done, info
 
     def _reward(self, reward, done, info): 
@@ -67,33 +59,6 @@ class CustomReward(Wrapper):
     def reset(self):
         self.curr_lives = 3
         return self.env.reset()
-
-
-class CustomSkipFrame(Wrapper):
-    def __init__(self, env, skip=4):
-        super(CustomSkipFrame, self).__init__(env)
-        self.observation_space = Box(low=0, high=255, shape=(4, 84, 84))
-        self.skip = skip
-
-    def step(self, action):
-        total_reward = 0
-        observations_list = []
-        observation, reward, done, info = self.env.step(action)
-        for i in range(self.skip):
-            if not done:
-                observation, reward, done, info = self.env.step(action)
-                total_reward += reward
-                observations_list.append(observation)
-            else:
-                observations_list.append(observation)
-        observations_list = np.concatenate(observations_list, 0)[None, :, :, :]
-        return observations_list.astype(np.float32), reward, done, info
-
-    def reset(self):
-        observation = self.env.reset()
-        observations_list = np.concatenate([observation for _ in range(self.skip)], 0)[None, :, :, :]
-        return observations_list.astype(np.float32)
-
 
 class NoopResetEnv(gym.Wrapper):
     def __init__(self, env, noop_max=30):
@@ -175,3 +140,48 @@ class EpisodicLifeEnv(gym.Wrapper):
             obs, _, _, info = self.env.step(0)
             self.lives = info['ale.lives']
         return obs
+
+class CustomSkipFrame(Wrapper):
+    def __init__(self, env, skip=0):
+        super(CustomSkipFrame, self).__init__(env)
+        self.observation_space = Box(low=0, high=1., shape=(1, 84, 84))
+        self.skip = skip
+
+    def step(self, action):
+        observation, reward, done, info = self.env.step(action)
+        total_reward = reward
+        for _skip in range(self.skip):
+            if not done:
+                observation, reward, done, info = self.env.step(action)
+                total_reward += reward
+        return observation, total_reward, done, info
+
+    def reset(self):
+        return self.env.reset()
+
+class CustomStackFrame(Wrapper):
+    def __init__(self, env, stack=4, skip=0):
+        super(CustomStackFrame, self).__init__(env)
+        self.observation_space = Box(low=0, high=1., shape=(4, 84, 84))
+        self.stack = stack
+        self.skip = skip
+
+    def step(self, action):
+        observations_list = []
+        observation, reward, done, info = self.env.step(action)
+        total_reward = reward
+        observations_list.append(observation)
+        for _stack in range(self.stack-1):
+            if not done:
+                observation, reward, done, info = self.env.step(action)
+                total_reward += reward
+                observations_list.append(observation)
+            else:
+                observations_list.append(observation)
+        observations_list = np.concatenate(observations_list, 0)[None, :, :, :]
+        return observations_list.astype(np.float32), total_reward, done, info
+
+    def reset(self):
+        observation = self.env.reset()
+        observations_list = np.concatenate([observation for _ in range(self.stack)], 0)[None, :, :, :]
+        return observations_list.astype(np.float32)

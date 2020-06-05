@@ -11,7 +11,7 @@ from time import gmtime, strftime
 
 
 # read csv file as a list of lists
-with open('data/models/a3c_SuperMarioBros-1-1-v0.csv', 'r') as read_obj:
+with open('data/models/a3c_SpaceInvaders-v4.csv', 'r') as read_obj:
     # pass the file object to reader() to get the reader object
     csv_reader = reader(read_obj,delimiter=';')
     # Pass reader object to list() to get a list of lists

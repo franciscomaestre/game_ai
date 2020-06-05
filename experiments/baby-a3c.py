@@ -10,10 +10,10 @@ os.environ['OMP_NUM_THREADS'] = '1'
 
 def get_args():
     parser = argparse.ArgumentParser(description=None)
-    parser.add_argument('--env', default='Breakout-v4', type=str, help='gym environment')
+    parser.add_argument('--env', default='SpaceInvaders-v4', type=str, help='gym environment')
     parser.add_argument('--processes', default=20, type=int, help='number of processes to train with')
     parser.add_argument('--render', default=False, type=bool, help='renders the atari environment')
-    parser.add_argument('--test', default=False, type=bool, help='sets learning_rate=0, chooses most likely actions')
+    parser.add_argument('--test', default=False, type=bool, help='sets lr=0, chooses most likely actions')
     parser.add_argument('--rnn_steps', default=20, type=int, help='steps to train LSTM over')
     parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
     parser.add_argument('--seed', default=1, type=int, help='seed random # generators (for reproducibility)')
@@ -58,7 +58,7 @@ class NNPolicy(nn.Module): # an actor-critic neural network
         return step
 
 class SharedAdam(torch.optim.Adam): # extend a pytorch optimizer so it shares grads across processes
-    def __init__(self, params, learning_rate=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0):
+    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0):
         super(SharedAdam, self).__init__(params, lr, betas, eps, weight_decay)
         for group in self.param_groups:
             for p in group['params']:
@@ -172,7 +172,7 @@ if __name__ == "__main__":
 
     torch.manual_seed(args.seed)
     shared_model = NNPolicy(channels=1, memsize=args.hidden, num_actions=args.num_actions).share_memory()
-    shared_optimizer = SharedAdam(shared_model.parameters(), learning_rate=args.lr)
+    shared_optimizer = SharedAdam(shared_model.parameters(), lr=args.lr)
 
     info = {k: torch.DoubleTensor([0]).share_memory_() for k in ['run_epr', 'run_loss', 'episodes', 'frames']}
     info['frames'] += shared_model.try_load(args.save_dir) * 1e6

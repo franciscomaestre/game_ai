@@ -177,9 +177,9 @@ class DiscreteActorCriticTrainProcess(_mp.Process):
                     model_path = "{}/a3c_{}_{}".format(self.agent_params['model_path'], self.env_params['env_name'],self.agent_params['train_name'])
                     torch.save(self.global_model.state_dict(),model_path)
                 if curr_episode % 25 == 0 or curr_episode == 1:
-                    _save_status(self.agent_params['train_name'],curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, step_info["flag_get"], "{}/a3c_{}.csv".format(self.agent_params['model_path'], self.env_params['env_name']))
+                    _save_status(self.agent_params['train_name'],curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, step_info.get("flag_get","N/A") , "{}/a3c_{}.csv".format(self.agent_params['model_path'], self.env_params['env_name']))
                 
-                _print_status(self.agent_params['train_name'], curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, step_info["flag_get"])
+                _print_status(self.agent_params['train_name'], curr_episode, start_time, episode_reward, mean(episodes_rewards_list), best_reward, step_info.get("flag_get","N/A"))
 
             if curr_episode == self.agent_params['num_global_steps']:
                 print("Training process {} terminated".format(self.index))

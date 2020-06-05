@@ -29,12 +29,12 @@ class MonitorEnv(Wrapper):
 
     def __init__(self, env, video_path = None):
         super(MonitorEnv, self).__init__(env)
-        self.observation_space = Box(low=0, high=255, shape=(1, 84, 84))
+        self.observation_space = Box(low=0, high=1., shape=(1, 84, 84))
         self.monitor = Monitor(256, 240, video_path)
 
     def step(self, action):
         observation, reward, done, info = self.env.step(action)
-        self.monitor.record(observation)
+        self.monitor.record(np.array(observation))
         return observation, reward, done, info
 
     def reset(self):
