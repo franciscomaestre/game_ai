@@ -7,7 +7,7 @@ gym-super-mario-bros==7.3.0
 kiwisolver==1.2.0
 matplotlib==3.2.1
 nes-py==8.1.1
-numpy==1.18.4
+numpy==1.22.0
 opencv-python==4.2.0.34
 Pillow==7.1.2
 protobuf==3.11.3
