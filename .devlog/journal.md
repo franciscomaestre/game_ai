@@ -2,3 +2,4 @@
 - 2026-03-20 11:33 | update: progreso (#6)
 - 2026-04-09 20:37 | wip: experimento del dia (#27)
 - 2026-04-10 18:08 | notes: ideas pendientes (#29)
+- 2026-04-30 20:28 | docs: nota de avance (#56)
