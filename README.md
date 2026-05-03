@@ -21,3 +21,6 @@ Si estás en un Mac, debes incluir en tu bashsrc export OBJC_DISABLE_INITIALIZE_
 ## Convertir resultado a GIF
 
 ffmpeg -ss 0 -t 14 -i input.mp4 -vf "fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 output.gif
+
+---
+Maintained by Francisco Maestre
