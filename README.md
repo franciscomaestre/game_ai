@@ -24,3 +24,6 @@ ffmpeg -ss 0 -t 14 -i input.mp4 -vf "fps=10,scale=320:-1:flags=lanczos,split[s0]
 
 ---
 Maintained by Francisco Maestre
+
+---
+Maintained by Francisco Maestre
