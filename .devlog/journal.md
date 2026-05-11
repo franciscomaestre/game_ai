@@ -4,3 +4,4 @@
 - 2026-04-10 18:08 | notes: ideas pendientes (#29)
 - 2026-04-30 20:28 | docs: nota de avance (#56)
 - 2026-05-08 12:15 | refactor: reorganizar apuntes (#72)
+- 2026-05-10 19:30 | update: progreso (#73)
