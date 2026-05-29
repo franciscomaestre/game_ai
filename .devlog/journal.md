@@ -5,3 +5,4 @@
 - 2026-04-30 20:28 | docs: nota de avance (#56)
 - 2026-05-08 12:15 | refactor: reorganizar apuntes (#72)
 - 2026-05-10 19:30 | update: progreso (#73)
+- 2026-05-29 17:09 | wip: experimento del dia (#93)
