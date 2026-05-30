@@ -6,3 +6,4 @@
 - 2026-05-08 12:15 | refactor: reorganizar apuntes (#72)
 - 2026-05-10 19:30 | update: progreso (#73)
 - 2026-05-29 17:09 | wip: experimento del dia (#93)
+- 2026-05-30 15:22 | tweak: ajuste menor (#94)
